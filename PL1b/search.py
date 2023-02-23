@@ -74,18 +74,72 @@ def depthFirstSearch(problem):
     print("Is the start a goal?", problem.isGoalState(problem.getStartState()))
     print("Start's successors:", problem.getSuccessors(problem.getStartState()))
     """
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visitados = []
+    adyacentes = util.Stack()
+
+    adyacentes.push((problem.getStartState(), [], 0))
+
+    while not adyacentes.isEmpty(): 
+        sacarNodo = adyacentes.pop()
+        if sacarNodo[0] not in visitados:
+            if problem.isGoalState(sacarNodo[0]):
+                resultado = sacarNodo[1]
+                break;
+            else:
+                visitados.append(sacarNodo[0])
+                x = problem.getSuccessors(sacarNodo[0])
+                for hijo, mov_hijo, hijo_coste in x:
+                    if (hijo not in visitados):
+                        resultado = adyacentes.push((hijo, sacarNodo[1]+[mov_hijo]))
+
+    return resultado
+   # util.raiseNotDefined()
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    visitados = []
+    adyacentes = util.Queue()
+
+    adyacentes.push((problem.getStartState(), [], 0))
+
+    while not adyacentes.isEmpty(): 
+        sacarNodo = adyacentes.pop()
+        if sacarNodo[0] not in visitados:
+            if problem.isGoalState(sacarNodo[0]):
+                resultado = sacarNodo[1]
+                break;
+            else:
+                visitados.append(sacarNodo[0])
+                x = problem.getSuccessors(sacarNodo[0])
+                for hijo, mov_hijo, hijo_coste in x:
+                    if (hijo not in visitados):
+                        resultado = adyacentes.push((hijo, sacarNodo[1]+[mov_hijo]))
+
+    return resultado
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from util import PriorityQueue
+    visitados = []
+    adyacentes = util.PriorityQueue()
+
+    adyacentes.push((problem.getStartState(), [], 0), 0)
+
+    while not adyacentes.isEmpty(): 
+        sacarNodo = adyacentes.pop()
+        if sacarNodo[0] not in visitados:
+            if problem.isGoalState(sacarNodo[0]):
+                resultado = sacarNodo[1]
+                break;
+            else:
+                visitados.append(sacarNodo[0])
+                x = problem.getSuccessors(sacarNodo[0])
+                for hijo, mov_hijo, hijo_coste in x:
+                    if (hijo not in visitados):
+                        resultado = adyacentes.push((hijo, sacarNodo[1]+[mov_hijo], sacarNodo[2]+hijo_coste),sacarNodo[2]+hijo_coste) 
+
+    return resultado
 
 def nullHeuristic(state, problem=None):
     """
@@ -97,7 +151,38 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    
+    # BRANCH & BOUND
+    from util import PriorityQueue
+    
+    # construimos una lista de caminos parciales
+    tree = PriorityQueue()
+    # anadimos nodo raiz
+    tree.push((problem.getStartState(),[],0),0) # estado, camino, coste    
+    visitados = []
+    
+    # hasta que la lista este vacia o el camino alcance el nodo objetivo 
+    # y el coste del camino <= que el coste de cualquier otro camino
+    while not tree.isEmpty():
+        # eliminar primer camino de la lista
+        (siguiente, camino, cost) = tree.pop()
+        # formar nuevos caminos a partir del eliminado
+        if siguiente not in visitados:
+            if problem.isGoalState(siguiente):
+                return camino
+        
+            visitados.append(siguiente)
+            adyacentes = problem.getSuccessors(siguiente)
+            # anadir tanto caminos como hijos tenga el ultimo nodo de este camino
+            for hijo in adyacentes:
+                if hijo[0] not in visitados:
+                    heuristicost = cost + hijo[2] + heuristic(hijo, problem)
+                    tree.push((hijo[0],camino+[hijo[1]], cost+hijo[2]), heuristicost)
+    return camino
+                    
+    
+    
+   # util.raiseNotDefined()
 
 
 # Abbreviations
