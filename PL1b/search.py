@@ -100,24 +100,38 @@ def breadthFirstSearch(problem):
     "*** YOUR CODE HERE ***"
     visitados = []
     adyacentes = util.Queue()
-    # esquinasvisitad = [False, False, False, False]
+   
 
-    adyacentes.push((problem.getStartState(), [], 0))
+    adyacentes.push((problem.getStartState(), []))
+    
+    visitados.append(problem)
 
     while not adyacentes.isEmpty(): 
         sacarNodo = adyacentes.pop()
-        if sacarNodo[0][0] not in visitados:
-            if problem.isGoalState(sacarNodo[0]):
-                resultado = sacarNodo[1]
-                break;
-            else:
-                visitados.append(sacarNodo)
-                x = problem.getSuccessors(sacarNodo[0])
-                for hijo, mov_hijo, hijo_coste in x:
-                    if (hijo not in visitados):
-                        resultado = adyacentes.push((hijo, sacarNodo[1]+[mov_hijo]))
 
-    return resultado
+        # si es el estado que estamos buscando
+        if problem.isGoalState(sacarNodo[0]):
+            return sacarNodo[1]
+            
+        sucesores = problem.getSuccessors(sacarNodo[0])
+        
+        for s in sucesores:
+            if s[0][0] not in visitados:
+                visitados.append(s[0][0])
+                adyacentes.push((s[0][0], sacarNodo[1]+[s[1]]))
+        
+        # if sacarNodo[0][0] not in visitados:
+            # if problem.isGoalState(sacarNodo[0]):
+                # resultado = sacarNodo[1]
+                # break;
+            # else:
+                # visitados.append(sacarNodo)
+                # x = problem.getSuccessors(sacarNodo[0])
+                # for hijo, mov_hijo, hijo_coste in x:
+                    # if (hijo not in visitados):
+                        # resultado = adyacentes.push((hijo, sacarNodo[1]+[mov_hijo]))
+
+    return sacarNodo[1]
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
