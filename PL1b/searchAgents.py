@@ -286,19 +286,19 @@ class CornersProblem(search.SearchProblem):
         space)
         """
         "*** YOUR CODE HERE ***"
-        # posicion, [F,F,F,F]
-        esquinasvisitadas = [F,F,F,F]
-        return (self.startPosition, esquinasvisitadas)
+        listaesquinas = []
+        
+        for i in range(len(self.corners)):
+            listaesquinas.append(self.corners[i])
+        # list(estado[1])
+        return (self.startingPosition, listaesquinas)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        cont = 0
-        for i in range(len(state)):
-            if state[1][i] == T: cont+=1
-        return cont == 4
+        return len(state[1])==0
 
     def getSuccessors(self, state):
         """
@@ -312,38 +312,28 @@ class CornersProblem(search.SearchProblem):
         """
 
         "*** YOUR CODE HERE ***"
-        esq = [F,F,F,F]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            x,y = state
+            x, y = state[0]     #posicion actual = state[0]
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             
+            nextState = (nextx, nexty)
+            esquinasSIvisitadas = state[1]
+            
             # si no choca
             if not self.walls[nextx][nexty]:
-                # trabajamos con una copia
-                lFV = []
-                lFV.deepcopy(state[1]) # obtengo la lista de ese estado
-                # actualizando listado esq
-                for i in range(len(lFV)):
-                    if lFV[i] == T:
-                        esq[i] = T
-                        
-                # si la posicion esta a true, ponemos en la lista de esquinas visitas a true
-                if nextState in self.corners:
-                    indice = self.corners.index(nextState)
-                    esq[indice] = T
-                    
-                successors.append( ( nextState, action, cost) )
-            
-            # Bookkeeping for display purposes
-            self._expanded += 1 # DO NOT CHANGE
-            if state not in self._visited:
-                self._visited[state] = True
-                self._visitedlist.append(state)
-
-            return successors
+                #trabajamos con una copia
+                noVisitadas = esquinasSIvisitadas
                 
+                if nextState in self.corners:
+                    # si la posicion no esta en las  esquinas visitadas, la quitamos de las esquinas visitadas
+                    if nextState in noVisitadas:
+                        noVisitadas.remove(nextState)               
+                
+                # anadimos a la lista de sucesores    
+                successors.append( (( nextState, noVisitadas), action, 1))
+            
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -379,60 +369,39 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
-        # BRANCH & BOUND
     from util import PriorityQueue
     
     sumadist = 0 
     posActual = state[0]
     noesquinasvisitadas = state[1]
-    
-    while not isGoalState :
-        # obtener la siguiente esquina mas cercana a visitar
-        while 
-            esquina = 
-            minDistancia = util.manhattanHeuristic(posActual, esquina)
-            # si se encuentra una distancia mas corta, nos quedamos con ella
-            for posibolesq in noesquinasvisitadas:
-                dist = util.manhattanHeuristic(posActual, posibolesq)
-                # hacemos el cambio si encontramos menor
-                if minDistancia > dist:
-                    minDistancia = dist
-                    esquina = posibolesq
-            # anadimos 
-            sumadist += util.manhattanHeuristic(posActual, esquina)
-            posActual = esquina
-            
-    
-    
-    
-    
-    # construimos una lista de caminos parciales
     tree = PriorityQueue()
-    # anadimos nodo raiz
-    tree.push((problem.getStartState(),[],0),0) # estado, camino, coste    
+    # (estado, esquinas ); camino, coste
+    tree.push((problem.getStartState(),[]),[],0)
     visitados = []
     
-    # hasta que la lista este vacia o el camino alcance el nodo objetivo 
-    # y el coste del camino <= que el coste de cualquier otro camino
-    while not tree.isEmpty():
-        # eliminar primer camino de la lista
-        (siguiente, camino, cost) = tree.pop()
-        # formar nuevos caminos a partir del eliminado
-        if siguiente not in visitados:
-            if problem.isGoalState(siguiente):
-                return camino
+    while not  tree.isEmpty():
+    
+        if isGoalState():
+            return camino
+        # obtener la siguiente esquina mas cercana a visitar
+        for i in range(len(esquinasvisitadas)):
+            if esquinasvisitadas[i] == F:
+                esquina = self.corners[i] #obtengo solamente la coordenada de la esquina
+                break
         
-            visitados.append(siguiente)
-            adyacentes = problem.getSuccessors(siguiente)
-            # anadir tanto caminos como hijos tenga el ultimo nodo de este camino
-            for hijo in adyacentes:
-                if hijo[0] not in visitados:
-                    heuristicost = cost + hijo[2] + heuristic(hijo, problem)
-                    tree.push((hijo[0],camino+[hijo[1]], cost+hijo[2]), heuristicost)
-    return camino
-    
-    
-    
+        # obtengo la distancia  manhattan
+        minDistancia = util.manhattanHeuristic(posActual, esquina)
+        
+        # si se encuentra una distancia mas corta, nos quedamos con ella
+        for posibolesq in noesquinasvisitadas:
+            dist = util.manhattanHeuristic(posActual, posibolesq)
+            # hacemos el cambio si encontramos menor
+            if minDistancia > dist:
+                minDistancia = dist
+                esquina = posibolesq
+        # anadimos 
+        sumadist += util.manhattanHeuristic(posActual, esquina)
+        posActual = esquina    
     
     return 0 # Default to trivial solution
 
@@ -528,6 +497,7 @@ def foodHeuristic(state, problem):
     """
     position, foodGrid = state
     "*** YOUR CODE HERE ***"
+    
     return 0
 
 class ClosestDotSearchAgent(SearchAgent):
