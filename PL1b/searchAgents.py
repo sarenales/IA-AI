@@ -279,20 +279,26 @@ class CornersProblem(search.SearchProblem):
         # in initializing the problem
         "*** YOUR CODE HERE ***"
 
+
     def getStartState(self):
         """
         Returns the start state (in your state space, not the full Pacman state
         space)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # posicion, [F,F,F,F]
+        esquinasvisitadas = [F,F,F,F]
+        return (self.startPosition, esquinasvisitadas)
 
     def isGoalState(self, state):
         """
         Returns whether this search state is a goal state of the problem.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        cont = 0
+        for i in range(len(state)):
+            if state[1][i] == T: cont+=1
+        return cont == 4
 
     def getSuccessors(self, state):
         """
@@ -305,16 +311,39 @@ class CornersProblem(search.SearchProblem):
             is the incremental cost of expanding to that successor
         """
 
+        "*** YOUR CODE HERE ***"
+        esq = [F,F,F,F]
         successors = []
         for action in [Directions.NORTH, Directions.SOUTH, Directions.EAST, Directions.WEST]:
-            # Add a successor state to the successor list if the action is legal
-            # Here's a code snippet for figuring out whether a new position hits a wall:
-            #   x,y = currentPosition
-            #   dx, dy = Actions.directionToVector(action)
-            #   nextx, nexty = int(x + dx), int(y + dy)
-            #   hitsWall = self.walls[nextx][nexty]
+            x,y = state
+            dx, dy = Actions.directionToVector(action)
+            nextx, nexty = int(x + dx), int(y + dy)
+            
+            # si no choca
+            if not self.walls[nextx][nexty]:
+                # trabajamos con una copia
+                lFV = []
+                lFV.deepcopy(state[1]) # obtengo la lista de ese estado
+                # actualizando listado esq
+                for i in range(len(lFV)):
+                    if lFV[i] == T:
+                        esq[i] = T
+                        
+                # si la posicion esta a true, ponemos en la lista de esquinas visitas a true
+                if nextState in self.corners:
+                    indice = self.corners.index(nextState)
+                    esq[indice] = T
+                    
+                successors.append( ( nextState, action, cost) )
+            
+            # Bookkeeping for display purposes
+            self._expanded += 1 # DO NOT CHANGE
+            if state not in self._visited:
+                self._visited[state] = True
+                self._visitedlist.append(state)
 
-            "*** YOUR CODE HERE ***"
+            return successors
+                
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -350,6 +379,61 @@ def cornersHeuristic(state, problem):
     walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
 
     "*** YOUR CODE HERE ***"
+        # BRANCH & BOUND
+    from util import PriorityQueue
+    
+    sumadist = 0 
+    posActual = state[0]
+    noesquinasvisitadas = state[1]
+    
+    while not isGoalState :
+        # obtener la siguiente esquina mas cercana a visitar
+        while 
+            esquina = 
+            minDistancia = util.manhattanHeuristic(posActual, esquina)
+            # si se encuentra una distancia mas corta, nos quedamos con ella
+            for posibolesq in noesquinasvisitadas:
+                dist = util.manhattanHeuristic(posActual, posibolesq)
+                # hacemos el cambio si encontramos menor
+                if minDistancia > dist:
+                    minDistancia = dist
+                    esquina = posibolesq
+            # anadimos 
+            sumadist += util.manhattanHeuristic(posActual, esquina)
+            posActual = esquina
+            
+    
+    
+    
+    
+    # construimos una lista de caminos parciales
+    tree = PriorityQueue()
+    # anadimos nodo raiz
+    tree.push((problem.getStartState(),[],0),0) # estado, camino, coste    
+    visitados = []
+    
+    # hasta que la lista este vacia o el camino alcance el nodo objetivo 
+    # y el coste del camino <= que el coste de cualquier otro camino
+    while not tree.isEmpty():
+        # eliminar primer camino de la lista
+        (siguiente, camino, cost) = tree.pop()
+        # formar nuevos caminos a partir del eliminado
+        if siguiente not in visitados:
+            if problem.isGoalState(siguiente):
+                return camino
+        
+            visitados.append(siguiente)
+            adyacentes = problem.getSuccessors(siguiente)
+            # anadir tanto caminos como hijos tenga el ultimo nodo de este camino
+            for hijo in adyacentes:
+                if hijo[0] not in visitados:
+                    heuristicost = cost + hijo[2] + heuristic(hijo, problem)
+                    tree.push((hijo[0],camino+[hijo[1]], cost+hijo[2]), heuristicost)
+    return camino
+    
+    
+    
+    
     return 0 # Default to trivial solution
 
 class AStarCornersAgent(SearchAgent):
