@@ -403,8 +403,6 @@ def cornersHeuristic(state, problem):
         for i in range(len(esquinasNOvisitadas)):
             if not esquinasNOvisitadas[i]:
                 listaTF.append(corners[i])
-                print("listaTF ", listaTF)
-
         
         # si se encuentra una distancia mas corta, nos quedamos con ella
         for posibolesq in listaTF:
@@ -413,14 +411,16 @@ def cornersHeuristic(state, problem):
             if minDistancia > dist:
                 minDistancia = dist
                 esquina = posibolesq
+                
         # anadimos 
         sumadist += util.manhattanDistance(actualState, esquina)
         actualState = esquina  
                         
         # ponemos a false la esquina visitada
-        aux = listaTF
+        aux = list(esquinasNOvisitadas)
         aux[corners.index(esquina)] = True
-        listaTF = aux
+        esquinasNOvisitadas = list(aux)
+        
     
     return sumadist # Default to trivial solution
 
