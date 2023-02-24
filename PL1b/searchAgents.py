@@ -329,20 +329,20 @@ class CornersProblem(search.SearchProblem):
      
             if not self.walls[nextx][nexty]:
                 #trabajamos con una copia
-                noVisitadas = list(esquinasSIvisitadas)
+                esquinasNOvisitadas = list(esquinasSIvisitadas)
                 
                 if nextState in self.corners:
                     #miramos si es una esquina no visitada, si es asi ponemos a false
                     
                     indice = (self.corners).index(nextState)
-                    if not noVisitadas[indice]:
-                        noVisitadas[indice] = True
+                    if not esquinasNOvisitadas[indice]:
+                        esquinasNOvisitadas[indice] = True
                     
-                    #if nextState in noVisitadas[0]:
-                        #noVisitadas.remove(nextState)               
+                    #if nextState in esquinasNOvisitadas[0]:
+                        #esquinasNOvisitadas.remove(nextState)               
                 
                 # anadimos a la lista de sucesores    
-                successors.append( (( nextState, noVisitadas), action, 1))
+                successors.append( (( nextState, esquinasNOvisitadas), action, 1))
             
 
         self._expanded += 1 # DO NOT CHANGE
@@ -382,36 +382,34 @@ def cornersHeuristic(state, problem):
     from util import PriorityQueue
     
     sumadist = 0 
-    posActual = state[0]
-    noesquinasvisitadas = state[1]
-    tree = PriorityQueue()
-    # (estado, esquinas ); camino, coste
-    tree.push((problem.getStartState(),[]),[],0)
-    visitados = []
+    actualState = state[0] # coordenada
+    esquinasNOvisitadas = state[1]
     
-    while not  tree.isEmpty():
+
     
-        if isGoalState():
-            return camino
+    while (False in esquinasNOvisitadas):
+        
         # obtener la siguiente esquina mas cercana a visitar
-        for i in range(len(esquinasvisitadas)):
-            if esquinasvisitadas[i] == F:
-                esquina = self.corners[i] #obtengo solamente la coordenada de la esquina
+        for i in range(len(esquinasNOvisitadas)):
+            if esquinasNOvisitadas[i] == False:
+                esquina = corners[i] #obtengo solamente la coordenada de la esquina
                 break
         
         # obtengo la distancia  manhattan
-        minDistancia = util.manhattanHeuristic(posActual, esquina)
+        minDistancia = util.manhattanDistance(actualState, esquina)
         
         # si se encuentra una distancia mas corta, nos quedamos con ella
-        for posibolesq in noesquinasvisitadas:
-            dist = util.manhattanHeuristic(posActual, posibolesq)
+        for posibolesq in esquinasNOvisitadas:
+            dist = util.manhattanDistance(actualState, posibolesq)
             # hacemos el cambio si encontramos menor
             if minDistancia > dist:
                 minDistancia = dist
                 esquina = posibolesq
         # anadimos 
-        sumadist += util.manhattanHeuristic(posActual, esquina)
-        posActual = esquina    
+        sumadist += util.manhattanDistance(actualState, esquina)
+        actualState = esquina  
+                        
+        # ponemos a false la esquina visitada
     
     return sumadist # Default to trivial solution
 
