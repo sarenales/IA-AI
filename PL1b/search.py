@@ -164,7 +164,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
     # construimos una lista de caminos parciales
     tree = PriorityQueue()
     # anadimos nodo raiz
-    tree.push((problem.getStartState(),[],0),0) # estado, camino, coste + costeheuristico   
+    tree.push((problem.getStartState(),[],0),0) # estado, camino, coste + costeheuristicoAcumulado   
     visitados = []
     
     # hasta que la lista este vacia o el camino alcance el nodo objetivo 
@@ -173,7 +173,7 @@ def aStarSearch(problem, heuristic=nullHeuristic):
         # eliminar primer camino de la lista
         (siguiente, camino, cost) = tree.pop()
         
-        print("siguiente", siguiente)
+        #print("siguiente", siguiente)
         if problem.isGoalState(siguiente):
             return camino
         
