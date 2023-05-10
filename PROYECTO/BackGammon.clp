@@ -3,7 +3,6 @@
     (slot tipo (type INTEGER)) 				; 0: humano, 1: cpu
     (slot color (type INTEGER))				; 0: negro, 1:blanco
 	(slot nombre(type INTEGER))				; 1: jugador1, 2: jugador2
-	(slot comidas (type INTEGER))
 	(slot fichasJugando (type INTEGER))
 	(slot fichasCasa (type INTEGER))
 	(slot fichasUltimo (type INTEGER))
@@ -204,7 +203,9 @@
 
 
 (deffacts inicial
-    (estado "INICIO")                           
+    (estado "INICIO")            
+	(comidasJ1 0)				; fichas que tiene comidas el jugador 1 y tiene que sacar
+	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar               
 )
 
 (defrule INICIO
@@ -309,21 +310,27 @@
 
 (defrule jugador1
     ?t<-(turno 1)
-	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(comidas ?comidasj1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
+	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
     ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 
 	=>
+	
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "TURNO DEL JUGADOR 1" crlf)
+	(imprimir-mapeo $?tablero)
 
 	(bind ?dados (tirarDados))
     (bind ?dado1 (nth$ 1 ?dados))
     (bind ?dado2 (nth$ 2 ?dados))
-    (bind ?sumadadosJ2 (+ ?dado1 ?dado2))
-
-	(printout t "------------------------------------------------------" crlf)
+    (bind ?sumadados (+ ?dado1 ?dado2))
+	(printout t "suma de los dados: " ?sumadados crlf)
 
 	(printout t "Puedes realizar 2 cosas:" crlf)
-	(printout t "Usar la suma de los dados para una sola ficha, o por cada dado dos fichas." crlf)
-	(printout t "Ingrese 1 para usar la suma de los dados para una sola ficha, o 2 para usar cada dado para dos fichas: " crlf)
+	(printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
+	(printout t "    2) Mover una ficha por cada dado." crlf)
+
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "Ingrese una de las dos opciones: " crlf)
 	(bind ?opcion (read))
 
 	(printout t "------------------------------------------------------" crlf)
@@ -333,25 +340,31 @@
 		(bind ?posicion (read))
 
 		;ELEGIR LA FICHA A MOVER
-		; comprobar si la ficha elegida es del color del jugador
-		(if (eq ?colorj1 1) then
-			(while (> (nth$ ?posicion $?tablero) 0); y mirar tambn si hay de su color 
+		; comprobar si hay alguna ficha del color en esa posicion
+		(if (eq ?colorj1 1) then	
+			(while (< (nth$ ?posicion $?tablero) 0)
+				(printout t (nth$ ?posicion $?tablero) crlf)
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
 				(bind ?posicion (read))
 			)
 		else
-			(while (< (nth$ ?ficha $?tablero) 0)
-					(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-					(bind ?ficha (read))
+
+			(while (> (nth$ ?posicion $?tablero) 0)
+				(printout t (nth$ ?posicion $?tablero) crlf)
+				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+				(bind ?posicion (read))
 			)
 		)
 	
 		;MOVER LA FICHA
+		; 1) no puede moverse para atras
+		; 2) si hay dos casillas del otro color, no puede quedarse ahí ni sobrepasar
+		; 3) si llega a donde hay una sola ficha del otro color, la come
 
 		(if (eq ?colorj1 1) then
 			(bind ?c 1)
 			(while(= ?c 1)
-				; si es blanco no puede ir para atras ( de la pos 8 a la 4)
+				; 1) no puede ir para atras ( blanco -> de la pos 8 a la 4)
 				(if (< ?posicion (- ?posicion 1)) then
 					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
 					(bind ?posicion (read))
@@ -388,23 +401,27 @@
 
 (defrule jugador2
     ?t<-(turno 2)
-	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(comidas ?comidasj2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
+	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
     ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 
     =>
  
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "TURNO DEL JUGADOR 2" crlf)
+    (imprimir-mapeo $?tablero)
+
 	(bind ?dados (tirarDados))
     (bind ?dado1 (nth$ 1 ?dados))
     (bind ?dado2 (nth$ 2 ?dados))
-    (bind ?sumadadosJ2 (+ ?dado1 ?dado2))
-
-	(printout t "------------------------------------------------------" crlf)
-
-	(printout t "Turno del JUGADOR 2" crlf)
+    (bind ?sumadados (+ ?dado1 ?dado2))
+	(printout t "suma de los dados: " ?sumadados crlf)
 
 	(printout t "Puedes realizar 2 cosas:" crlf)
-	(printout t "Usar la suma de los dados para una sola ficha, o por cada dado dos fichas." crlf)
-	(printout t "Ingrese 1 para usar la suma de los dados para una sola ficha, o 2 para usar cada dado para dos fichas: " crlf)
+	(printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
+	(printout t "    2) Mover una ficha por cada dado." crlf)
+
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "Ingrese una de las dos opciones: " crlf)
 	(bind ?opcion (read))
 
 	(printout t "------------------------------------------------------" crlf)
@@ -416,19 +433,19 @@
 		(bind ?posicion (read))
 
 		;ELEGIR FICHA A MOVER
-		; comprobar si la ficha elegida es del color del jugador
+		; comprobar si hay alguna ficha del color en esa posicion
 		(if (eq ?colorj2 1) then
-			(while (> (nth$ ?posicion $?tablero) 0); y mirar tambn si hay de su color 
+			(while (< (nth$ ?posicion $?tablero) 0)
+				(printout t (nth$ ?posicion $?tablero) crlf)
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
 				(bind ?posicion (read))
 			)
 		else
-			; comprobar si la ficha elegida es del color del jugador
-			(while (< (nth$ ?posicion $?tablero) 0)
-					(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-					(bind ?ficha (read))
+			(while (> (nth$ ?posicion $?tablero) 0)
+				(printout t (nth$ ?posicion $?tablero) crlf)
+				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+				(bind ?posicion (read))
 			)
-
 		)
 		;MOVER LA FICHA
 		(if (eq ?colorj2 1) then
@@ -467,9 +484,27 @@
 
 )
 
-(defrule comidas
-	?j<-(jugador (tipo ?tipoj)(color ?colorj)(nombre ?nombrej)(comidas ?comidasj)(fichasJugando ?fichasJugandoj)(fichasCasa ?fichasCasaj)(fichasUltimo ?fichasUltimoj))
-	(test (> ?comidasj 1))
+(defrule sacarComidasJ1
+	?j<-(comidasJ1 ?c)
+	(test (> ?c 1))
+	(turno 1)
+	=>
+	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
+	(bind ?dados (tirarDados))
+    (bind ?dado1J2 (nth$ 1 ?dados))
+    (bind ?dado2J2 (nth$ 2 ?dados))
+    (bind ?sumadadosJ2 (+ ?dado1J2 ?dado2J2))
+
+	(printout t "Puedes realizar 2 cosas:" crlf)
+	(printout t "Usar la suma de los dados para una sola ficha, o por cada dado dos fichas." crlf)
+
+
+)
+
+(defrule sacarComidasJ2
+	?j<-(comidasJ2 ?c)
+	(test (> ?c 1))
+	(turno 2)
 	=>
 	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
 	(bind ?dados (tirarDados))
