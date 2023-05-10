@@ -330,15 +330,14 @@
 
 	(if (eq ?opcion 1) then
 		(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
-		(bind ?ficha (read))
+		(bind ?posicion (read))
 
 		;ELEGIR LA FICHA A MOVER
 		; comprobar si la ficha elegida es del color del jugador
 		(if (eq ?colorj1 1) then
-		(printout t "Queee paasa: " crlf)
-			(while (> (nth$ ?ficha $?tablero) 0); y mirar tambn si hay de su color 
+			(while (> (nth$ ?posicion $?tablero) 0); y mirar tambn si hay de su color 
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?ficha (read))
+				(bind ?posicion (read))
 			)
 		else
 			(while (< (nth$ ?ficha $?tablero) 0)
@@ -419,14 +418,13 @@
 		;ELEGIR FICHA A MOVER
 		; comprobar si la ficha elegida es del color del jugador
 		(if (eq ?colorj2 1) then
-			(printout t "Queee paasa: " crlf)
-			(while (> (nth$ ?ficha $?tablero) 0); y mirar tambn si hay de su color 
+			(while (> (nth$ ?posicion $?tablero) 0); y mirar tambn si hay de su color 
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?ficha (read))
+				(bind ?posicion (read))
 			)
 		else
 			; comprobar si la ficha elegida es del color del jugador
-			(while (< (nth$ ?ficha $?tablero) 0)
+			(while (< (nth$ ?posicion $?tablero) 0)
 					(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
 					(bind ?ficha (read))
 			)
