@@ -1,8 +1,8 @@
 
 (deftemplate jugador
-    (multislot tipo (type SYMBOL) (allowed-symbols humano cpu)) 
-    (multislot color (type SYMBOL) (allowed-symbols negro blanco))
-	(multislot nombre(type SYMBOL) (allowed-symbols jugador1 jugador2))
+    (slot tipo (type INTEGER)) 				; 0: humano, 1: cpu
+    (slot color (type INTEGER))				; 0: negro, 1:blanco
+	(slot nombre(type INTEGER))				; 1: jugador1, 2: jugador2
 	(slot comidas (type INTEGER))
 	(slot fichasJugando (type INTEGER))
 	(slot fichasCasa (type INTEGER))
@@ -222,48 +222,48 @@
 
 	; JUGADOR 1
     ; iniciar CPU o Humano
-    (printout t "Jugador 1: (cpu o humano)" crlf)
-    (bind $?modo (readline))
+    (printout t "Jugador 1: (1->cpu o 0->humano)" crlf)
+    (bind ?modo (read))
 
     ; iniciar blancas o negras
-    (printout t "Ingrese el color de sus fichas: (blanco o negro)" crlf)
-    (bind $?colorj1 (readline))
-    (if (eq ?modo "humano")
+    (printout t "Ingrese el color de sus fichas: (1->blanco o 0->negro)" crlf)
+    (bind ?colorj1 (read))
+    (if (eq ?modo 0)
         then
-            (if (eq $?colorj1 "blanco")
+            (if (eq ?colorj1 1)
                 then
-                    (assert (jugador (tipo humano)(color blanco)(nombre jugador1)))
+                    (assert (jugador (tipo 0)(color 1)(nombre 1)))
                 else
-                    (assert (jugador (tipo humano)(color negro)(nombre jugador1)))
+                    (assert (jugador (tipo 0)(color 0)(nombre 1)))
             )  
     else
-            (if (eq $?colorj1 "blanco")
+            (if (eq ?colorj1 1)
                 then
-                    (assert (jugador (tipo cpu)(color blanco)(nombre jugador1)))
+                    (assert (jugador (tipo 1)(color 1)(nombre 1)))
                 else
-                    (assert (jugador (tipo cpu)(color negro)(nombre jugador1)))
+                    (assert (jugador (tipo 1)(color 0)(nombre 1)))
             )
     )
 
 	; JUGADOR 2
 	; iniciar CPU o Humano
-    (printout t "Jugador 2: (cpu o humano)" crlf)
-    (bind ?modo (readline))
+    (printout t "Jugador 2:(1->cpu o 0->humano)" crlf)
+    (bind ?modo (read))
 	; contrario que j1
-    (if (eq ?modo "humano")
+    (if (eq ?modo 0)
         then
-            (if (eq $?colorj1 "blanco")
+            (if (eq ?colorj1 1)
                 then
-                    (assert (jugador (tipo humano)(color negro)(nombre jugador2)))
+                    (assert (jugador (tipo 0)(color 0)(nombre 2)))
                 else
-                    (assert (jugador (tipo humano)(color blanco)(nombre jugador2)))
+                    (assert (jugador (tipo 0)(color 1)(nombre 2)))
             )  
     else
-            (if (eq $?colorj1 "blanco")
+            (if (eq ?colorj1 1)
                 then
-                    (assert (jugador (tipo cpu)(color negro)(nombre jugador2)))
+                    (assert (jugador (tipo 1)(color 0)(nombre 2)))
                 else
-                    (assert (jugador (tipo cpu)(color blanco)(nombre jugador2)))
+                    (assert (jugador (tipo 1)(color 1)(nombre 2)))
             )
     )
 
@@ -309,7 +309,7 @@
 
 (defrule jugador1
     ?t<-(turno 1)
-	?j1<-(jugador (tipo $?tipoj1)(color $?colorj1)(nombre jugador1)(comidas ?comidasj1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
+	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(comidas ?comidasj1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
     ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 
 	=>
@@ -334,7 +334,8 @@
 
 		;ELEGIR LA FICHA A MOVER
 		; comprobar si la ficha elegida es del color del jugador
-		(if (eq $?colorj1 "blanco") then
+		(if (eq ?colorj1 1) then
+		(printout t "Queee paasa: " crlf)
 			(while (> (nth$ ?ficha $?tablero) 0); y mirar tambn si hay de su color 
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
 				(bind ?ficha (read))
@@ -348,7 +349,7 @@
 	
 		;MOVER LA FICHA
 
-		(if (eq $?colorj1 "blanco") then
+		(if (eq ?colorj1 1) then
 			(bind ?c 1)
 			(while(= ?c 1)
 				; si es blanco no puede ir para atras ( de la pos 8 a la 4)
@@ -388,7 +389,7 @@
 
 (defrule jugador2
     ?t<-(turno 2)
-	?j2<-(jugador (tipo $?tipoj2)(color $?colorj2)(nombre jugador2)(comidas ?comidasj2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
+	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(comidas ?comidasj2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
     ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 
     =>
@@ -399,6 +400,8 @@
     (bind ?sumadadosJ2 (+ ?dado1 ?dado2))
 
 	(printout t "------------------------------------------------------" crlf)
+
+	(printout t "Turno del JUGADOR 2" crlf)
 
 	(printout t "Puedes realizar 2 cosas:" crlf)
 	(printout t "Usar la suma de los dados para una sola ficha, o por cada dado dos fichas." crlf)
@@ -412,10 +415,10 @@
 		; eleccion de la posicion a mover
 		(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
 		(bind ?posicion (read))
-		
+
 		;ELEGIR FICHA A MOVER
 		; comprobar si la ficha elegida es del color del jugador
-		(if (eq $?colorj2 "blanco") then
+		(if (eq ?colorj2 1) then
 			(printout t "Queee paasa: " crlf)
 			(while (> (nth$ ?ficha $?tablero) 0); y mirar tambn si hay de su color 
 				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
@@ -430,7 +433,7 @@
 
 		)
 		;MOVER LA FICHA
-		(if (eq $?colorj2 "blanco") then
+		(if (eq ?colorj2 1) then
 			(bind ?c 1)
 			(while(= ?c 1)
 				; si es blanco no puede ir para atras ( de la pos 8 a la 4)
@@ -467,7 +470,7 @@
 )
 
 (defrule comidas
-	?j<-(jugador (tipo $?tipoj)(color $?colorj)(comidas ?comidasj)(fichasJugando ?fichasJugandoj)(fichasCasa ?fichasCasaj)(fichasUltimo ?fichasUltimoj))
+	?j<-(jugador (tipo ?tipoj)(color ?colorj)(nombre ?nombrej)(comidas ?comidasj)(fichasJugando ?fichasJugandoj)(fichasCasa ?fichasCasaj)(fichasUltimo ?fichasUltimoj))
 	(test (> ?comidasj 1))
 	=>
 	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
