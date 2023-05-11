@@ -204,79 +204,104 @@
 		(bind $?posiblesDespD1 (create$))
 		(bind $?posiblesDespD2 (create$))
 		(bind $?posiblesDespD1D2 (create$))
+		(bind $?llegaCASA (create$))
 
-		; para cada ficha en juego
-		(loop-for-count (?i 1 24)
+		(bind ?i 1)
+		(while(> 24 ?i)
 			; hay alguna ficha blanca en la posicion i
-			(if (> (nth$ $?tablero ?i)0) then 
-
-				; puedo mover la ficha i dado1 posiciones
+			(if (> (nth$ ?i $?tablero) 0) then
+				; puedo mover la ficha i dado1 posiciones		
 				(bind ?posicionD1 (+ ?i ?dado1))
-				(if(> (nth$ $?tablero ?posicionD1) -1) then
+				(if(> (nth$ ?posicionD1 $?tablero) -1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 					(bind ?tupla (create$ ?i ?posicionD1))
-					(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
+					(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+				)
+				; si nos salimos de la posicion 24, entramos en casa
+				(if(> (nth$ ?posicionD1 $?tablero) 24) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 
 				; puedo mover la ficha i dado2 posiciones
 				(bind ?posicionD2 (+ ?i ?dado2))
-				(if(> (nth$ $?tablero ?posicionD2) -1) then
+				(if(> (nth$ ?posicionD2 $?tablero) -1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
-					(create$ ?tupla)
 					(bind ?tupla (create$ ?i ?posicionD2))
-					(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
+					(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+				)
+				(if(> (nth$ ?posicionD2 $?tablero) 24) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 
 				; puedo mover la ficha i dado1+dado2 posiciones
 				(bind ?posicionD1D2 (+ ?i ?sumadados))
-				(if(> (nth$ $?tablero ?posicionD1D2) -1) then
+				(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
-					(create$ ?tupla)
 					(bind ?tupla (create$ ?i ?posicionD1D2))
-					(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
+					(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+				)
+				(if(> (nth$ ?posicionD1D2 $?tablero) 24) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 			)
+			(bind ?i (+ ?i 1))
 		)
 		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2))
 	)
 	else
-		(create$ ?posiblesDespD1)
-		(create$ ?posiblesDespD2)
-		(create$ ?posiblesDespD1D2)
-
-		(loop-for-count (?i 24 1)
+		(bind $?posiblesDespD1 (create$))
+		(bind $?posiblesDespD2 (create$))
+		(bind $?posiblesDespD1D2 (create$))
+		(bind ?i 24)
+		(while(< 1 ?i)
 			; hay alguna ficha blanca en la posicion i
-			(if (< (nth$ $?tablero ?i)0) then 
+			(if (< (nth$ ?i $?tablero) 0) then 
 
 				; puedo mover la ficha i dado1 posiciones
-				(bind ?posicionD1 (+ ?i ?dado1))
-				(if(< (nth$ $?tablero ?posicionD1) 1) then
+				(bind ?posicionD1 (- ?i ?dado1))
+				(if(< (nth$ ?posicionD1 $?tablero) 1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
-					(create$ ?tupla)
 					(bind ?tupla (create$ ?i ?posicionD1))
-					(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
+					(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+				)
+				(if(< (nth$ ?posicionD1 $?tablero) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 
 				; puedo mover la ficha i dado2 posiciones
-				(bind ?posicionD2 (+ ?i ?dado2))
-				(if(< (nth$ $?tablero ?posicionD2) 1) then
+				(bind ?posicionD2 (- ?i ?dado2))
+				(if(< (nth$ ?posicionD2 $?tablero) 1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
-					(create$ ?tupla)
 					(bind ?tupla (create$ ?i ?posicionD2))
-					(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
+					(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+				)
+				(if(< (nth$ ?posicionD2 $?tablero) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 
 				; puedo mover la ficha i dado1+dado2 posiciones
-				(bind ?posicionD1D2 (+ ?i ?sumadados))
-				(if(< (nth$ $?tablero ?posicionD1D2) 1) then
+				(bind ?posicionD1D2 (- ?i ?sumadados))
+				(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
 					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
-					(create$ ?tupla)
 					(bind ?tupla (create$ ?i ?posicionD1D2))
-					(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
+					(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+				)
+				(if(< (nth$ ?posicionD1D" $?tablero) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
+					(bind $?posiblesDespD1 $?llegaCASA ?i)
 				)
 			)
+			(bind ?i (- ?i 1))
 		)
-		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2))
+		; mostramos por pantalla ?posbilesDespD1 ?posiblesDespD2 ?posiblesDespD1D2
+		;(printout t "Posibles movimientos con el dado1: " ?posiblesDespD1 crlf)
+		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2)
+	)
 	
 )
 
@@ -403,7 +428,11 @@
     (bind ?dado2 (nth$ 2 ?dados))
     (bind ?sumadados (+ ?dado1 ?dado2))
 
+	(printout t "llega aqui 1" crlf)
+	
 	(bind ?listas (posiblesDesplazamientos ?colorj1 ?fichasJugandoj1 ?dado1 ?dado2 ?sumadados $?tablero))
+	(printout t "llega aqui 2" crlf)
+
 	(bind ?listaD1 (nth$ 1 ?listas))
 	(bind ?listaD2 (nth$ 2 ?listas))
 	(bind ?listaD3 (nth$ 3 ?listas))
@@ -474,7 +503,11 @@
     (bind ?dado2 (nth$ 2 ?dados))
     (bind ?sumadados (+ ?dado1 ?dado2))
 
+	(printout t "llega aqui 1" crlf)
+	
 	(bind ?listas (posiblesDesplazamientos ?colorj2 ?fichasJugandoj2 ?dado1 ?dado2 ?sumadados $?tablero))
+	(printout t "llega aqui 2" crlf)
+	
 	(bind ?listaD1 (nth$ 1 ?listas))
 	(bind ?listaD2 (nth$ 2 ?listas))
 	(bind ?listaD3 (nth$ 3 ?listas))
