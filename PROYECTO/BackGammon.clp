@@ -1,4 +1,3 @@
-
 (deftemplate jugador
     (slot tipo (type INTEGER)) 				; 0: humano, 1: cpu
     (slot color (type INTEGER))				; 0: negro, 1:blanco
@@ -7,7 +6,6 @@
 	(slot fichasCasa (type INTEGER))
 	(slot fichasUltimo (type INTEGER))
 )
-
 
 (deftemplate BackGammon
     (slot ID (type INTEGER))                    ; ID del nodo
@@ -201,6 +199,86 @@
 	(printout t crlf)
 )
 
+(deffunction posiblesDesplazamientos (?color ?fichasJugando ?dado1 ?dado2 ?sumadados $?tablero)
+	(if (eq ?color 1) then
+		(bind $?posiblesDespD1 (create$))
+		(bind $?posiblesDespD2 (create$))
+		(bind $?posiblesDespD1D2 (create$))
+
+		; para cada ficha en juego
+		(loop-for-count (?i 1 24)
+			; hay alguna ficha blanca en la posicion i
+			(if (> (nth$ $?tablero ?i)0) then 
+
+				; puedo mover la ficha i dado1 posiciones
+				(bind ?posicionD1 (+ ?i ?dado1))
+				(if(> (nth$ $?tablero ?posicionD1) -1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
+					(bind ?tupla (create$ ?i ?posicionD1))
+					(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
+				)
+
+				; puedo mover la ficha i dado2 posiciones
+				(bind ?posicionD2 (+ ?i ?dado2))
+				(if(> (nth$ $?tablero ?posicionD2) -1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
+					(create$ ?tupla)
+					(bind ?tupla (create$ ?i ?posicionD2))
+					(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
+				)
+
+				; puedo mover la ficha i dado1+dado2 posiciones
+				(bind ?posicionD1D2 (+ ?i ?sumadados))
+				(if(> (nth$ $?tablero ?posicionD1D2) -1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
+					(create$ ?tupla)
+					(bind ?tupla (create$ ?i ?posicionD1D2))
+					(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
+				)
+			)
+		)
+		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2))
+	)
+	else
+		(create$ ?posiblesDespD1)
+		(create$ ?posiblesDespD2)
+		(create$ ?posiblesDespD1D2)
+
+		(loop-for-count (?i 24 1)
+			; hay alguna ficha blanca en la posicion i
+			(if (< (nth$ $?tablero ?i)0) then 
+
+				; puedo mover la ficha i dado1 posiciones
+				(bind ?posicionD1 (+ ?i ?dado1))
+				(if(< (nth$ $?tablero ?posicionD1) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
+					(create$ ?tupla)
+					(bind ?tupla (create$ ?i ?posicionD1))
+					(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
+				)
+
+				; puedo mover la ficha i dado2 posiciones
+				(bind ?posicionD2 (+ ?i ?dado2))
+				(if(< (nth$ $?tablero ?posicionD2) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
+					(create$ ?tupla)
+					(bind ?tupla (create$ ?i ?posicionD2))
+					(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
+				)
+
+				; puedo mover la ficha i dado1+dado2 posiciones
+				(bind ?posicionD1D2 (+ ?i ?sumadados))
+				(if(< (nth$ $?tablero ?posicionD1D2) 1) then
+					(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
+					(create$ ?tupla)
+					(bind ?tupla (create$ ?i ?posicionD1D2))
+					(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
+				)
+			)
+		)
+		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2))
+	
+)
 
 (deffacts inicial
     (estado "INICIO")            
@@ -270,6 +348,7 @@
 
 	(printout t "------------------------------------------------------" crlf)
     
+	(printout t "Quien empieza el juego ..... " crlf)
     ; tira dados Jugador 1
     (printout t "Jugador 1 tira dados..." crlf)
     (bind ?dados (tirarDados))
@@ -323,76 +402,56 @@
     (bind ?dado1 (nth$ 1 ?dados))
     (bind ?dado2 (nth$ 2 ?dados))
     (bind ?sumadados (+ ?dado1 ?dado2))
-	(printout t "suma de los dados: " ?sumadados crlf)
 
-	(printout t "Puedes realizar 2 cosas:" crlf)
-	(printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
-	(printout t "    2) Mover una ficha por cada dado." crlf)
-
-	(printout t "------------------------------------------------------" crlf)
-	(printout t "Ingrese una de las dos opciones: " crlf)
-	(bind ?opcion (read))
+	(bind ?listas (posiblesDesplazamientos ?colorj1 ?fichasJugandoj1 ?dado1 ?dado2 ?sumadados $?tablero))
+	(bind ?listaD1 (nth$ 1 ?listas))
+	(bind ?listaD2 (nth$ 2 ?listas))
+	(bind ?listaD3 (nth$ 3 ?listas))
 
 	(printout t "------------------------------------------------------" crlf)
+	; (printout t "suma de los dados: " ?sumadados crlf)
+ 
+	; (printout t "Puedes realizar 2 cosas:" crlf)
+	; (printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
+	; (printout t "    2) Mover una ficha por cada dado." crlf)
 
-	(if (eq ?opcion 1) then
-		(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
-		(bind ?posicion (read))
+	; (printout t "------------------------------------------------------" crlf)
+	; (printout t "Ingrese una de las dos opciones: " crlf)
+	; (bind ?opcion (read))
 
-		;ELEGIR LA FICHA A MOVER
-		; comprobar si hay alguna ficha del color en esa posicion
-		(if (eq ?colorj1 1) then	
-			(while (< (nth$ ?posicion $?tablero) 0)
-				(printout t (nth$ ?posicion $?tablero) crlf)
-				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?posicion (read))
-			)
-		else
+	; (printout t "------------------------------------------------------" crlf)
 
-			(while (> (nth$ ?posicion $?tablero) 0)
-				(printout t (nth$ ?posicion $?tablero) crlf)
-				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?posicion (read))
-			)
-		)
+	; (if (eq ?opcion 1) then
+	; 	(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
+	; 	(bind ?posicion (read))
+
+	; 	;ELEGIR LA FICHA A MOVER
+	; 	; comprobar si hay alguna ficha del color en esa posicion
+	; 	(if (eq ?colorj1 1) then	
+	; 		(while (< (nth$ ?posicion $?tablero) 0)
+	; 			(printout t (nth$ ?posicion $?tablero) crlf)
+	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+	; 			(bind ?posicion (read))
+	; 		)
+	; 	else
+
+	; 		(while (> (nth$ ?posicion $?tablero) 0)
+	; 			(printout t (nth$ ?posicion $?tablero) crlf)
+	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+	; 			(bind ?posicion (read))
+	; 		)
+	; 	)
 	
-		;MOVER LA FICHA
-		; 1) no puede moverse para atras
-		; 2) si hay dos casillas del otro color, no puede quedarse ahí ni sobrepasar
-		; 3) si llega a donde hay una sola ficha del otro color, la come
+	; 	;MOVER LA FICHA
+	; 	; 1) no puede moverse para atras
+	; 	; 2) si hay dos casillas del otro color, no puede quedarse ahí ni sobrepasar
+	; 	; 3) si llega a donde hay una sola ficha del otro color, la come
 
-		(if (eq ?colorj1 1) then
-			(bind ?c 1)
-			(while(= ?c 1)
-				; 1) no puede ir para atras ( blanco -> de la pos 8 a la 4)
-				(if (< ?posicion (- ?posicion 1)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				if (> 0 (nth$ ?posicion $?tablero)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				else
-					(bind ?c 0) )         
-			)
-		else
-			(bind ?c 1)
-			(while(= ?c 1)
-				; si es negro no puede ir para atras ( de la pos 17 a la 23)
-				(if (> ?posicion (- ?posicion 1))then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				if (< 0 (nth$ ?posicion $?tablero)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				else
-					(bind ?c 0) )         
-			)
-		)
 
 
 		(retract ?t)
 	    (assert (turno 2))
-	)
+	;)
 
    
 	
@@ -414,70 +473,76 @@
     (bind ?dado1 (nth$ 1 ?dados))
     (bind ?dado2 (nth$ 2 ?dados))
     (bind ?sumadados (+ ?dado1 ?dado2))
-	(printout t "suma de los dados: " ?sumadados crlf)
 
-	(printout t "Puedes realizar 2 cosas:" crlf)
-	(printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
-	(printout t "    2) Mover una ficha por cada dado." crlf)
+	(bind ?listas (posiblesDesplazamientos ?colorj2 ?fichasJugandoj2 ?dado1 ?dado2 ?sumadados $?tablero))
+	(bind ?listaD1 (nth$ 1 ?listas))
+	(bind ?listaD2 (nth$ 2 ?listas))
+	(bind ?listaD3 (nth$ 3 ?listas))
 
-	(printout t "------------------------------------------------------" crlf)
-	(printout t "Ingrese una de las dos opciones: " crlf)
-	(bind ?opcion (read))
+	; (printout t "suma de los dados: " ?sumadados crlf)
 
-	(printout t "------------------------------------------------------" crlf)
+	; (printout t "Puedes realizar 2 cosas:" crlf)
+	; (printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
+	; (printout t "    2) Mover una ficha por cada dado." crlf)
 
-	(if (eq ?opcion 1) then  
+	; (printout t "------------------------------------------------------" crlf)
+	; (printout t "Ingrese una de las dos opciones: " crlf)
+	; (bind ?opcion (read))
+
+	; (printout t "------------------------------------------------------" crlf)
+
+	; (if (eq ?opcion 1) then  
    
-		; eleccion de la posicion a mover
-		(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
-		(bind ?posicion (read))
+	; 	; eleccion de la posicion a mover
+	; 	(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
+	; 	(bind ?posicion (read))
 
-		;ELEGIR FICHA A MOVER
-		; comprobar si hay alguna ficha del color en esa posicion
-		(if (eq ?colorj2 1) then
-			(while (< (nth$ ?posicion $?tablero) 0)
-				(printout t (nth$ ?posicion $?tablero) crlf)
-				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?posicion (read))
-			)
-		else
-			(while (> (nth$ ?posicion $?tablero) 0)
-				(printout t (nth$ ?posicion $?tablero) crlf)
-				(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-				(bind ?posicion (read))
-			)
-		)
-		;MOVER LA FICHA
-		(if (eq ?colorj2 1) then
-			(bind ?c 1)
-			(while(= ?c 1)
-				; si es blanco no puede ir para atras ( de la pos 8 a la 4)
-				(if (< ?posicion (- ?posicion 1)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				if (> 0 (nth$ ?posicion $?tablero)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				else
-					(bind ?c 0) )         
-			)
-		else
-			(bind ?c 1)
-			(while(= ?c 1)
-				; si es negro no puede ir para atras ( de la pos 17 a la 23)
-				(if (> ?posicion (- ?posicion 1))then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				if (< 0 (nth$ ?posicion $?tablero)) then
-					(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
-					(bind ?posicion (read))
-				else
-					(bind ?c 0) )         
-			)
-		)
+	; 	;ELEGIR FICHA A MOVER
+	; 	; comprobar si hay alguna ficha del color en esa posicion
+	; 	(if (eq ?colorj2 1) then
+	; 		(while (< (nth$ ?posicion $?tablero) 0)
+	; 			(printout t (nth$ ?posicion $?tablero) crlf)
+	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+	; 			(bind ?posicion (read))
+	; 		)
+	; 	else
+	; 		(while (> (nth$ ?posicion $?tablero) 0)
+	; 			(printout t (nth$ ?posicion $?tablero) crlf)
+	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
+	; 			(bind ?posicion (read))
+	; 		)
+	; 	)
+	; 	;MOVER LA FICHA
+	; 	(if (eq ?colorj2 1) then
+	; 		(bind ?c 1)
+	; 		(while(= ?c 1)
+	; 			; si es blanco no puede ir para atras ( de la pos 8 a la 4)
+	; 			(if (< ?posicion (- ?posicion 1)) then
+	; 				(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
+	; 				(bind ?posicion (read))
+	; 			if (> 0 (nth$ ?posicion $?tablero)) then
+	; 				(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
+	; 				(bind ?posicion (read))
+	; 			else
+	; 				(bind ?c 0) )         
+	; 		)
+	; 	else
+	; 		(bind ?c 1)
+	; 		(while(= ?c 1)
+	; 			; si es negro no puede ir para atras ( de la pos 17 a la 23)
+	; 			(if (> ?posicion (- ?posicion 1))then
+	; 				(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
+	; 				(bind ?posicion (read))
+	; 			if (< 0 (nth$ ?posicion $?tablero)) then
+	; 				(printout t "Posicion invalida. Ingrese la posicion a mover: " crlf)
+	; 				(bind ?posicion (read))
+	; 			else
+	; 				(bind ?c 0) )         
+	; 		)
+	; 	)
  	(retract ?t)
     (assert (turno 1))
-	)
+	;)
 
 
 	
@@ -486,7 +551,7 @@
 
 (defrule sacarComidasJ1
 	?j<-(comidasJ1 ?c)
-	(test (> ?c 1))
+	(test (> ?c 0))
 	(turno 1)
 	=>
 	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
@@ -503,7 +568,7 @@
 
 (defrule sacarComidasJ2
 	?j<-(comidasJ2 ?c)
-	(test (> ?c 1))
+	(test (> ?c 0))
 	(turno 2)
 	=>
 	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
