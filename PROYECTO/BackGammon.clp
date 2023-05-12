@@ -14,6 +14,7 @@
     (slot profundidad (type INTEGER))           ; profundidad del nodo
 )
 
+
 (deffunction tirarDados ()
     (printout t "Tirando dados..." crlf)
     (bind ?dado1 (random 1 6))
@@ -213,11 +214,11 @@
 				; puedo mover la ficha i dado1 posiciones		
 				(bind ?posicionD1 (+ ?i ?dado1))
 				(if(> ?posicionD1 24) then ; si nos salimos de la posicion 24, entramos en casa
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1" crlf)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1" crlf)
 					(bind $?llegaCASA $?llegaCASA ?i)
 				else
 					(if(> (nth$ ?posicionD1 $?tablero) -1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
 					)
@@ -226,11 +227,11 @@
 				; puedo mover la ficha i dado2 posiciones
 				(bind ?posicionD2 (+ ?i ?dado2))
 				(if(> ?posicionD2 24) then
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
 					(bind $?llegaCASA $?llegaCASA ?i)
 				else
 					(if(> (nth$ ?posicionD2 $?tablero) -1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
 					)
@@ -240,11 +241,11 @@
 				(bind ?posicionD1D2 (+ ?i ?sumadados))
 				; (printout t "posicionD1D2: " ?posicionD1D2 crlf)
 				(if(> ?posicionD1D2 24) then
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
 					(bind $?llegaCASA $?llegaCASA ?i)
 				else
 					(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
 					)
@@ -252,28 +253,32 @@
 			)
 			(bind ?i (+ ?i 1))
 		)
-		(return (create$ ?posiblesDespD1 ?posiblesDespD2 ?posiblesDespD1D2))
+		(assert (posiblesDespD1 $?posiblesDespD1))
+		(assert (posiblesDespD2 $?posiblesDespD2))
+		(assert (posiblesDespD1D2 $?posiblesDespD1D2))
+		(assert (llegaCASA $?llegaCASA))
+
+		(return (create$ $?posiblesDespD1 0 $?posiblesDespD2 0 $?posiblesDespD1D2 0 $?llegaCASA 0))
 	
 	else
-		(bind $?posiblesDespD1 (create$))
-		(bind $?posiblesDespD2 (create$))
-		(bind $?posiblesDespD1D2 (create$))
-		(bind $?llegaCASA (create$))
+		(bind ?posiblesDespD1 (create$))
+		(bind ?posiblesDespD2 (create$))
+		(bind ?posiblesDespD1D2 (create$))
+		(bind ?llegaCASA (create$))
 		(bind ?i 24)
 		(while(< 1 ?i)
 			; hay alguna ficha blanca en la posicion i
 			(if (< (nth$ ?i $?tablero) 0) then 
-				(printout t ?i crlf)
 				; puedo mover la ficha i dado1 posiciones
 				(bind ?posicionD1 (- ?i ?dado1))
 				(if(< ?posicionD1 1) then
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1"crlf)
-					(bind $?llegaCASA $?llegaCASA ?i)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1"crlf)
+					(bind ?llegaCASA ?llegaCASA ?i)
 				else 
 					(if(< (nth$ ?posicionD1 $?tablero) 1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
-						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+						(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
 					)	
 				)
 
@@ -281,13 +286,13 @@
 				(bind ?posicionD2 (- ?i ?dado2))
 				
 				(if(< ?posicionD2 1) then
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
-					(bind $?llegaCASA $?llegaCASA ?i)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado2"crlf)
+					(bind ?llegaCASA ?llegaCASA ?i)
 				else
 					(if(< (nth$ ?posicionD2 $?tablero) 1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
-						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+						(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
 					)
 				)
 
@@ -296,29 +301,62 @@
 				;(printout t ?posicionD1D2 crlf)
 				
 				(if(< ?posicionD1D2 1) then
-					(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
-					(bind $?llegaCASA $?llegaCASA ?i)
+					;(printout t "La ficha de la posicion " ?i " puede moverse a CASA utilizando el dado1+2"crlf)
+					(bind ?llegaCASA ?llegaCASA ?i)
 				else
 					(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
-						(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
+						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
-						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+						(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
 					)
 				)
 			)
 			(bind ?i (- ?i 1))
 		)
+		(assert (posiblesDespD1 $?posiblesDespD1))
+		(assert (posiblesDespD2 $?posiblesDespD2))
+		(assert (posiblesDespD1D2 $?posiblesDespD1D2))
+		(assert (llegaCASA $?llegaCASA))
+		
+		(return (create$ ?posiblesDespD1 0 ?posiblesDespD2 0 ?posiblesDespD1D2 0 ?llegaCASA 0))
 	)
-		; mostramos por pantalla ?posbilesDespD1 ?posiblesDespD2 ?posiblesDespD1D2
-		;(printout t "Posibles movimientos con el dado1: " ?posiblesDespD1 crlf)
-	(return (create$ $?posiblesDespD1 $?posiblesDespD2 $?posiblesDespD1D2 $?llegaCASA))
+	
 	
 )
+
+(deffunction separarLista ($?lista)
+   (bind ?resultado (create$)) ; lista principal que contendrá todas las listas separadas
+   (bind ?sublista (create$)) ; lista temporal que contendrá cada sublista separada
+   (bind ?i 1) ; indice para recorrer la lista original
+   (while (< ?i (length$ $?lista))
+      (bind ?elem (nth$ ?i $?lista)) ; elemento actual de la lista original
+      (if (= ?elem 0) ; si se encuentra un 0, se agrega la sublista a la lista principal
+         then 
+            (if (> (length$ ?sublista) 0)
+               then (bind ?resultado (create$ ?resultado ?sublista))
+            )
+            (bind ?sublista (create$)) ; se crea una nueva sublista
+       else ; si no es un 0, se agrega el elemento a la sublista actual
+            (bind ?sublista (create$ ?sublista ?elem))
+      )
+      (bind ?i (+ ?i 1)) ; se aumenta el índice
+   )
+   ; agregar la ultima sublista creada a la lista principal
+   (if (> (length$ ?sublista) 0) then 
+   		(bind ?resultado (create$ ?resultado ?sublista))
+   )
+   ; devolver la lista principal con todas las sublistas separadas
+   (return ?resultado)
+)
+
 
 (deffacts inicial
     (estado "INICIO")            
 	(comidasJ1 0)				; fichas que tiene comidas el jugador 1 y tiene que sacar
-	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar               
+	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar        
+	(posiblesDespD1 (create$))       
+	(posiblesDespD2 (create$))       
+	(posiblesDespD1D2 (create$))       
 )
 
 (defrule INICIO
@@ -421,14 +459,14 @@
 
 )
 
-
 (defrule jugador1
     ?t<-(turno 1)
 	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
     ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
-
+	?pd1<- (posiblesDespD1 $?posiblesDespD1)
+	?pd2<- (posiblesDespD2 $?posiblesDespD2)
+	?pd1d2<- (posiblesDespD1D2 $?posiblesDespD1D2)
 	=>
-	
 	(printout t "------------------------------------------------------" crlf)
 	(printout t "TURNO DEL JUGADOR 1" crlf)
 	(imprimir-mapeo $?tablero)
@@ -441,55 +479,177 @@
 
 	(bind ?listas (posiblesDesplazamientos ?colorj1 ?fichasJugandoj1 ?dado1 ?dado2 ?sumadados $?tablero))
 
+	;(printout t (implode$ ?listas) crlf)
 
-	(bind ?listaD1 (nth$ 1 ?listas))
-	(bind ?listaD2 (nth$ 2 ?listas))
-	(bind ?listaD3 (nth$ 3 ?listas))
+	(bind ?l (implode$ ?listas))
+
+	; vamos a separar las listas
+	(bind ?dado1listabool 0)
+	(bind ?dado1lista (create$))
+	(bind ?i 1)
+	(bind ?cont1 0)
+	(while (= ?dado1listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		;(printout t "Elemento: " ?elemento crlf)
+		(if (= 0 ?elemento) then
+			(bind ?dado1listabool 1)
+		else
+			(bind ?dado1lista ?dado1lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont1 (+ ?cont1 1))
+		)
+	)
+	
+	;(printout t "Dado 1: " (implode$ ?dado1lista) crlf)
+	;(printout t "Contador: " ?cont1 crlf)
 
 	(printout t "------------------------------------------------------" crlf)
-	; (printout t "suma de los dados: " ?sumadados crlf)
- 
-	; (printout t "Puedes realizar 2 cosas:" crlf)
-	; (printout t "    1) Usar la suma de los dados para una sola ficha." crlf)
-	; (printout t "    2) Mover una ficha por cada dado." crlf)
-
-	; (printout t "------------------------------------------------------" crlf)
-	; (printout t "Ingrese una de las dos opciones: " crlf)
-	; (bind ?opcion (read))
-
-	; (printout t "------------------------------------------------------" crlf)
-
-	; (if (eq ?opcion 1) then
-	; 	(printout t "Ingrese la posicion de la ficha que quieres mover: " crlf)
-	; 	(bind ?posicion (read))
-
-	; 	;ELEGIR LA FICHA A MOVER
-	; 	; comprobar si hay alguna ficha del color en esa posicion
-	; 	(if (eq ?colorj1 1) then	
-	; 		(while (< (nth$ ?posicion $?tablero) 0)
-	; 			(printout t (nth$ ?posicion $?tablero) crlf)
-	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-	; 			(bind ?posicion (read))
-	; 		)
-	; 	else
-
-	; 		(while (> (nth$ ?posicion $?tablero) 0)
-	; 			(printout t (nth$ ?posicion $?tablero) crlf)
-	; 			(printout t "No hay fichas de ese color en esa posicion. Ingrese la ficha a mover: " crlf)
-	; 			(bind ?posicion (read))
-	; 		)
-	; 	)
+	(printout t "Dado 1" crlf)
+	(bind ?j 1)
+	(bind ?a 1)
+	(while (< ?j ?cont1)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado1lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
+		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+		(printout t " Opcion " ?a " [" (implode$ ?tupla) "]" crlf)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
 	
-	; 	;MOVER LA FICHA
-	; 	; 1) no puede moverse para atras
-	; 	; 2) si hay dos casillas del otro color, no puede quedarse ahí ni sobrepasar
-	; 	; 3) si llega a donde hay una sola ficha del otro color, la come
+	
+
+
+	(bind ?i (+ ?i 1))
+	(bind ?dado2listabool 0)
+	(bind ?dado2lista (create$))
+	(bind ?cont2 0)
+	(while (= ?dado2listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		;(printout t "Elemento: " ?elemento crlf)
+		(if (= 0 ?elemento) then
+			(bind ?dado2listabool 1)
+		else
+			(bind ?dado2lista ?dado2lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont2 (+ ?cont2 1))
+		)
+	)
+	;(printout t "Dado 2: " (implode$ ?dado2lista) crlf)
+
+	(printout t "Dado 2" crlf)
+	(bind ?j 1)
+	(bind ?a 1)
+	(while (< ?j ?cont2)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado2lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado2lista))
+		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+		(printout t " Opcion " ?a "[" (implode$ ?tupla) "]"crlf)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
+	
+
+
+	(bind ?i (+ ?i 1))
+	(bind ?dado1d2listabool 0)
+	(bind ?dado1d2lista (create$))
+	(bind ?cont3 0)
+	(while (= ?dado1d2listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		;(printout t "Elemento: " ?elemento crlf)
+		(if (= 0 ?elemento) then
+			(bind ?dado1d2listabool 1)
+		else
+			(bind ?dado1d2lista ?dado1d2lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont3 (+ ?cont3 1))
+		)
+	)
+	;(printout t "Dado 1+2: " (implode$ ?dado1d2lista) crlf)
+	(printout t "Dado 1+2" crlf)
+	(bind ?j 1)
+	(bind ?a 1)
+	(while (< ?j ?cont3)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado1d2lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1d2lista))
+		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+		(printout t " Opcion " ?a " ["  (implode$ ?tupla) "]" crlf)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
+	
+
+	(bind ?casabool 0)
+	(bind ?casalista (create$))
+	(bind ?i (+ ?i 1))
+	(bind ?cont4 0)
+	(while (= ?casabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		;(printout t "Elemento: " ?elemento crlf)
+		(if (= 0 ?elemento) then
+			(bind ?casabool 1)
+		else
+			(bind ?casalista ?casalista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont4 (+ ?cont4 1))
+		)
+	)
+	(printout t )
 
 
 
-		(retract ?t)
-	    (assert (turno 2))
-	;)
+	; (bind ?resultado (separarLista $?l))
+
+	; (printout t "Resultado: " (implode$ ?resultado) crlf)
+
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "Opciones de movimiento: " crlf)
+	(printout t "------------------------------------------------------" crlf)
+	
+
+	; (bind ?tam (length$ ?listas))
+	; (bind ?tam1 (length$ $?posiblesDespD1))
+	; (printout t (implode$ $?posiblesDespD1) crlf)
+	; (printout t "Posibles movimientos usando el dado 1: " ?tam1 crlf)
+	
+	; (bind ?cont 1)
+	; (bind ?i 1)
+	; (while (< ?i ?tam1)
+	; 	(printout t ?cont ": "(nth$ ?i $?posiblesDespD1 ) "->" (nth$ (+ ?i 1) $?posiblesDespD1) crlf)
+	; 	(bind ?i (+ ?i 2))
+	; 	(bind ?cont (+ ?cont 1))
+	; )
+	
+	
+
+	(retract ?pd1 ?pd2 ?pd1d2)
+	;(printout t ?tam crlf)
+	; (bind ?i 1)
+	; (while (< ?i ?tam)
+	; 	(printout t (nth$ ?i ?listas) crlf)
+	; 	(bind ?i (+ ?i 2)
+	; )
+
+
+	; (progn$ (?i (implode$ ?listaD1))
+	; 	(printout t ?i)
+	; )
+
+	; (printout t  $?listaD1 crlf)
+	; (printout t "DADO 2:" crlf)
+	; (printout t (implode$ $?listaD2)crlf)
+	; (printout t "DADO 1 + DADO 2:" crlf)
+	; (printout t (implode$ $?listaD3 crlf)
+
+
+
+
+	(retract ?t)
+    ;(assert (turno 2))
+
 
    
 	
