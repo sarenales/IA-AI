@@ -14,7 +14,6 @@
     (slot profundidad (type INTEGER))           ; profundidad del nodo
 )
 
-
 (deffunction tirarDados ()
     (printout t "Tirando dados..." crlf)
     (bind ?dado1 (random 1 6))
@@ -413,29 +412,31 @@
 )
 
 (defrule movimientoREGLA
-	?m<-(movimiento 1)
-	?d<-(desplazar 0)
-	?cd1<-(contadordado1 ?contadordado1)
-	?cd2<-(contadordado2 ?contadordado2)
-	?cd1d2<-(contadordado1dado2 ?contadordado1dado2)
+	?m<- (movimiento 1)
+	?d<- (desplazar 0)
+	?cd1<- (contadordado1 ?contd1)
+	?cd2<- (contadordado2 ?contd2)
+	?cd1d2<- (contadorsumadados ?contd1d2)
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	=>
 
 	(bind ?movimiento (read))
-	(printout t ?contadordado1 " " ?contadordado2 " " ?contadordado1dado2 crlf)
-	(bind ?contadordado1 (div ?contadordado1 2))
-	(bind ?contadordado2 (div ?contadordado2 2))
-	(bind ?contadordado1dado2 (div ?contadordado1dado2 2))
 
-	(if(<= ?movimiento  ?contadordado1) then 
+	(bind ?contd1 (div ?contd1 2))
+	(bind ?contd2 (div ?contd2 2))
+	(bind ?contd1d2 (div ?contd1d2 2))
+
+	(if(<= ?movimiento  ?contd1) then 
 		(printout t "elige el dado 1" crlf) 
 		; ahora puede elegir solo el dado 2
 	else
-		(if(> ?movimiento (+ ?contadordado1 ?contadordado2)) then
+		(if(> ?movimiento (+ ?contd1 ?contd2)) then
 			(printout t "elige el dado1+2" crlf)
+			; ya no puede elegir ningun dado mas
 		else
 			(printout t "elige el dado 2" crlf)
+			; ahora solo puede elegir el dado 1
 		)
 	)
 )
@@ -535,7 +536,6 @@
 		(assert (movimientosdado1dado2 $?movimientosdado1dado2)) 
 	)
 	(assert (desplazar 0))
-
 )
 
 (defrule jugador1
@@ -619,7 +619,6 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado1 ?cont1))
-	
 
 
 	(bind ?i (+ ?i 1))
@@ -688,7 +687,7 @@
 		(bind ?j (+ ?j 2))
 		(bind ?a (+ ?a 1))
 	)
-	(assert (contadordado1d2 ?cont3))
+	(assert (contadorsumadados ?cont3))
 
 
 
