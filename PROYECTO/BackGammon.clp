@@ -295,6 +295,29 @@
 	
 )
 
+(deffunction actualizarTablero (?desd ?hast ?color $?tabler)
+	(if (= ?color 1)then
+		(bind ?contenido (nth$ ?desd $?tabler))
+		(bind $?tabler (replace$ $?tabler ?desd ?desd (- ?contenido 1)))
+
+		(bind ?contenido (nth$ ?hast $?tabler))
+		(bind $?tabler (replace$ $?tabler ?hast ?hast (+ ?contenido 1)))
+
+		(return $?tabler)
+	
+	else
+		(bind ?contenido (nth$ ?desd $?tabler))
+		(bind $?tabler (replace$ $?tabler ?desd ?desd (+ ?contenido 1)))
+
+
+		(bind ?contenido (nth$ ?hast $?tabler))
+		(bind $?tabler (replace$ $?tabler ?hast ?hast (- ?contenido 1)))
+
+		(return $?tabler)
+	)
+	
+)
+
 (deffacts inicial
     (estado "INICIO")            
 	(comidasJ1 0)				; fichas que tiene comidas el jugador 1 y tiene que sacar
@@ -417,6 +440,9 @@
 	?cd1<- (contadordado1 ?contd1)
 	?cd2<- (contadordado2 ?contd2)
 	?cd1d2<- (contadorsumadados ?contd1d2)
+	?m1<- (movimientosdado1 $?movimientosdado1)
+	?m2<- (movimientosdado2 $?movimientosdado2)
+	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	=>
@@ -428,8 +454,41 @@
 	(bind ?contd1d2 (div ?contd1d2 2))
 
 	(if(<= ?movimiento  ?contd1) then 
+		; elige primero el dado1
+		(retract ?m1m2)
 		(printout t "elige el dado 1" crlf) 
-		; ahora puede elegir solo el dado 2
+		(bind ?desde (nth$ ?movimiento $?movimientosdado1))
+		(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
+
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+
+		(retract ?bg)
+		(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+
+
+		(imprimir-mapeo $?tableroNuevo)
+
+		(retract ?m1)
+
+		(printout t "Ahora elige un movimiento con el dado2" crlf)
+
+		(bind ?movimiento (read))
+
+		(while (and (> ?movimiento (+ ?contd1 ?contd2)) (<= ?movimiento ?contd2))
+			(printout t "elige un movimiento valido del dado2!" crlf)
+			(bind ?movimiento (read))
+		)
+
+		(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
+		(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+
+		(retract ?bg)
+		(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+
+
+		(imprimir-mapeo $?tableroNuevo)
+
 	else
 		(if(> ?movimiento (+ ?contd1 ?contd2)) then
 			(printout t "elige el dado1+2" crlf)
