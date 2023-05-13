@@ -323,9 +323,9 @@
 	(comidasJ1 0)				; fichas que tiene comidas el jugador 1 y tiene que sacar
 	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar   
 	(desplazar 0)   
-	(movimientosdado1 (create$))	; lista de movimientos posibles con el dado 1
-	(movimientosdado2 (create$))	; lista de movimientos posibles con el dado 2
-	(movimientosdado1dado2 (create$))	; lista de movimientos posibles con el dado 1 y 2
+	; (movimientosdado1 (create$))	; lista de movimientos posibles con el dado 1
+	; (movimientosdado2 (create$))	; lista de movimientos posibles con el dado 2
+	; (movimientosdado1dado2 (create$))	; lista de movimientos posibles con el dado 1 y 2
 	(D1 0)
 	(D2 0)
 	(SD 0)
@@ -445,6 +445,8 @@
 	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	(test (= ?turno ?nombre))
 	=>
 
 	(bind ?movimiento (read))
@@ -461,8 +463,8 @@
 
 		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
 
-		(retract ?bg)
-		?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+		;(retract ?bg)
+		;?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
 
 
 		(imprimir-mapeo $?tableroNuevo)
@@ -480,7 +482,7 @@
 
 		(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
 		(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
-		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
 
 		(retract ?bg ?m2)
 		(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
@@ -512,8 +514,8 @@
 
 			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
 
-			(retract ?bg)
-			?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+			;(retract ?bg)
+			;?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
 
 
 			(imprimir-mapeo $?tableroNuevo)
@@ -531,7 +533,7 @@
 
 			(bind ?desde (nth$ ?movimiento $?movimientosdado1))
 			(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
-			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
 
 			(retract ?bg ?m1)
 			(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
@@ -539,6 +541,28 @@
 			(imprimir-mapeo $?tableroNuevo)
 		)
 	)
+
+
+	(assert (desplazar 0))
+	(assert (movimiento 0))
+	(if (= ?turno 1) then
+		(retract ?t)
+		(assert (turno 2))
+	else
+		(retract ?t)
+		(assert (turno 1))
+	)
+	
+
+	(retract ?cd1 ?cd2 ?cd1d2) 
+	
+	(assert (D1 0))
+	(assert (D2 0))
+	(assert (SD 0))
+	
+	(assert (contadordado1 0))
+	(assert (contadordado2 0))
+	(assert (contadorsumadados 0))
 )
 
 (defrule desplazarREGLA
@@ -551,8 +575,10 @@
 	?sumad1d2 <- (SD ?sumadados)
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	(test (eq ?turno ?nombre))
 	=>
-	;(printout t "entra en desplazar " crlf)
+	(printout t "entra en desplazar " crlf)
 	(retract ?d ?m1 ?m2 ?m1m2)
 	(if (eq ?color 1) then
 		(bind ?i 1)
@@ -635,7 +661,10 @@
 		(assert (movimientosdado2 $?movimientosdado2))
 		(assert (movimientosdado1dado2 $?movimientosdado1dado2)) 
 	)
+	(retract ?d)
 	(assert (desplazar 0))
+	(retract ?d1 ?d2 ?sumad1d2)
+	(assert (movimiento 1))
 )
 
 (defrule jugador1
@@ -647,12 +676,14 @@
 	?cd2<-(contadordado2 0)
 	?cd1d2<-(contadorsumadados 0)
 	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
-    ?j2<- (jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
+   ; ?j2<- (jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?desplazar<-(desplazar 0)
 	=>
-
-	(retract ?j2)
+	(assert (movimientosdado1 (create$)))	
+	(assert (movimientosdado2 (create$)))	
+	(assert (movimientosdado1dado2 (create$)))	
+	;(retract ?j2)
 
 	(printout t "------------------------------------------------------" crlf)
 	(printout t "TURNO DEL JUGADOR 1" crlf)
@@ -818,38 +849,192 @@
 
 
 	(assert (movimiento 1))
-	(retract ?t)  
+	;(retract ?t)  
 )
 
 (defrule jugador2
     ?t<-(turno 2)
-	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
-    ?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?d1<- (D1 0)
+	?d2<- (D2 0)
+	?d1d2<-(SD 0)
+	?cd1<-(contadordado1 0)
+	?cd2<-(contadordado2 0)
+	?cd1d2<-(contadorsumadados 0)
+	;?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
+    ?j2<- (jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
+	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?desplazar<-(desplazar 0)
+	=>
+	(assert (movimientosdado1 (create$)))	
+	(assert (movimientosdado2 (create$)))	
+	(assert (movimientosdado1dado2 (create$)))	
+	;(retract ?j1)
 
-    =>
- 
 	(printout t "------------------------------------------------------" crlf)
 	(printout t "TURNO DEL JUGADOR 2" crlf)
-    (imprimir-mapeo $?tablero)
+	(imprimir-mapeo $?tablero)
+
+	(retract ?d1 ?d2 ?d1d2 ?desplazar ?cd1 ?cd2 ?cd1d2)
 
 	(bind ?dados (tirarDados))
     (bind ?dado1 (nth$ 1 ?dados))
     (bind ?dado2 (nth$ 2 ?dados))
     (bind ?sumadados (+ ?dado1 ?dado2))
-
 	
+	(assert (D1 ?dado1))
+	(assert (D2 ?dado2))
+	(assert (SD ?sumadados))
+
+	; regla para almacenar los posibles desplazamientos
+	(assert (desplazar 1))
+
 	(bind ?listas (posiblesDesplazamientos ?colorj2 ?fichasJugandoj2 ?dado1 ?dado2 ?sumadados $?tablero))
+
+	;(printout t (implode$ ?listas) crlf)
+
+	(bind ?l (implode$ ?listas))
+
+
+	(printout t "------------------------------------------------------" crlf)
+	(printout t "Opciones de movimiento: " crlf)
+	(printout t "------------------------------------------------------" crlf)
 	
-	(bind ?listaD1 (nth$ 1 ?listas))
-	(bind ?listaD2 (nth$ 2 ?listas))
-	(bind ?listaD3 (nth$ 3 ?listas))
+	
+	(printout t "Eliga una de las siguientes opciones: " crlf)
+
+	; vamos a separar las listas
+	(bind ?dado1listabool 0)
+	(bind ?dado1lista (create$))
+	(bind ?i 1)
+	(bind ?cont1 0)
+	(while (= ?dado1listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		(if (= 0 ?elemento) then
+			(bind ?dado1listabool 1)
+		else
+			(bind ?dado1lista ?dado1lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont1 (+ ?cont1 1))
+		)
+	)
+	(printout t "Dado 1" crlf)
+	(bind ?j 1)
+	(bind ?a 1)
+	(while (< ?j ?cont1)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado1lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
+		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
+			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
+
+		else
+			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+			(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
+		)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
+	(assert (contadordado1 ?cont1))
 
 
- 	(retract ?t)
-    (assert (turno 1))
-	;)
+	(bind ?i (+ ?i 1))
+	(bind ?dado2listabool 0)
+	(bind ?dado2lista (create$))
+	(bind ?cont2 0)
+	(while (= ?dado2listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		(if (= 0 ?elemento) then
+			(bind ?dado2listabool 1)
+		else
+			(bind ?dado2lista ?dado2lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont2 (+ ?cont2 1))
+		)
+	)
+
+	(printout t "Dado 2" crlf)
+	(bind ?j 1)
+	(while (< ?j ?cont2)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado2lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado2lista))
+
+		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
+			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
+		else
+			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+			(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]"crlf)
+		)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
+	(assert (contadordado2 ?cont2))
 
 
+
+
+	(bind ?i (+ ?i 1))
+	(bind ?dado1d2listabool 0)
+	(bind ?dado1d2lista (create$))
+	(bind ?cont3 0)
+	(while (= ?dado1d2listabool 0)
+		(bind ?elemento (nth$ ?i ?listas))
+		(if (= 0 ?elemento) then
+			(bind ?dado1d2listabool 1)
+		else
+			(bind ?dado1d2lista ?dado1d2lista (nth$ ?i ?listas))
+			(bind ?i (+ ?i 1))
+			(bind ?cont3 (+ ?cont3 1))
+		)
+	)
+
+	(printout t "Dado 1+2" crlf)
+	(bind ?j 1)
+	(while (< ?j ?cont3)
+		(bind ?tupla (create$))
+		(bind ?elemento (nth$ ?j ?dado1d2lista))
+		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1d2lista))
+		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
+			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
+		else
+			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+			(printout t " Opcion " ?a ") ["  (implode$ ?tupla) "]" crlf)
+		)
+		(bind ?j (+ ?j 2))
+		(bind ?a (+ ?a 1))
+	)
+	(assert (contadorsumadados ?cont3))
+
+
+
+	; (bind ?casabool 0)
+	; (bind ?casalista (create$))
+	; (bind ?i (+ ?i 1))
+	; (bind ?cont4 0)
+	; (while (= ?casabool 0)
+	; 	(bind ?elemento (nth$ ?i ?listas))
+	; 	;(printout t "Elemento: " ?elemento crlf)
+	; 	(if (= 0 ?elemento) then
+	; 		(bind ?casabool 1)
+	; 	else
+	; 		(bind ?casalista ?casalista (nth$ ?i ?listas))
+	; 		(bind ?i (+ ?i 1))
+	; 		(bind ?cont4 (+ ?cont4 1))
+	; 	)
+	; )
+	; (printout t "Mover a casa" crlf)
+	; (printout t ?casalista crlf)
+	; (bind ?j 1)
+	; (while (<= ?j ?cont4)
+	; 	(bind ?elemento (nth$ ?j ?casalista))
+	; 	(printout t " Opcion " ?a " ["  ?elemento " -> CASA]" crlf)
+	; 	(bind ?j (+ ?j 1))
+	; 	(bind ?a (+ ?a 1))
+	; )
+
+
+	(assert (movimiento 1))
+	;(retract ?t)  
 	
 
 )
