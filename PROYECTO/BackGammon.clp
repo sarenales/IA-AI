@@ -203,15 +203,17 @@
 				(bind ?posicionD1 (+ ?i ?dado1))
 				(if(< ?posicionD1 24) then 
 					(if (= (nth$ ?posicionD1 $?tablero) -1) then
-						(printout t "podemos comer siuuu con el dado1" crlf)
+						;(printout t "podemos comer siuuu con el dado1" crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
-						(bind $?despD1comen $?despD1comen ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 1)
+						;(bind $?despD1comen $?despD1comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD1 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 2)
 					)
 				)
 
@@ -219,15 +221,17 @@
 				(bind ?posicionD2 (+ ?i ?dado2))
 				(if(< ?posicionD2 24) then
 					(if (= (nth$ ?posicionD2 $?tablero) -1) then 
-						(printout t "podemos comer siuuu con el dado2" crlf)
+						;(printout t "podemos comer siuuu con el dado2" crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
-						(bind $?despD2comen $?despD2comen ?tupla)
+						(bind $?posiblesDespD2 $?posiblesDespD2 1)
+						;(bind $?despD2comen $?despD2comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD2 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+						(bind $?posiblesDespD2 $?posiblesDespD2 2)
 					)
 				)
 
@@ -236,15 +240,17 @@
 				; (printout t "posicionD1D2: " ?posicionD1D2 crlf)
 				(if(< ?posicionD1D2 24) then
 					(if (= (nth$ ?posicionD1D2 $?tablero) -1) then 
-						(printout t "podemos comer siuuu con el dado1+2" crlf)
+						;(printout t "podemos comer siuuu con el dado1+2" crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
-						(bind $?despD1D2comen $?despD1D2comen ?tupla)
+						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 1)
+						;(bind $?despD1D2comen $?despD1D2comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 2)
 					)
 				)
 			)
@@ -259,33 +265,35 @@
 				(bind ?posicionD1 (- ?i ?dado1))
 				(if(> ?posicionD1 1) then
 					(if (= (nth$ ?posicionD1 $?tablero) 1) then
-						(printout t "podemos comer siuuu con el dado1" crlf)
+						;(printout t "podemos comer siuuu con el dado1" crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
-						(bind $?despD1comen $?despD1comen ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 1)
+						;(bind $?despD1comen $?despD1comen ?tupla)
 					)
 
 					(if(< (nth$ ?posicionD1 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
-						(bind ?posiblesDespD1 ?posiblesDespD1 ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 2)
 					)	
 				)
 
 				; puedo mover la ficha i dado2 posiciones
 				(bind ?posicionD2 (- ?i ?dado2))
-				
 				(if(> ?posicionD2 1) then
 					(if (= (nth$ ?posicionD2 $?tablero) 1) then
-						(printout t "podemos comer siuuu con el dado2" crlf)
+						;(printout t "podemos comer siuuu con el dado2" crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
-						(bind $?despD2comen $?despD2comen ?tupla)
+						(bind $?posiblesDespD2 $?posiblesDespD2 1)
+						;(bind $?despD2comen $?despD2comen ?tupla)
 					)
 					(if(< (nth$ ?posicionD2 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
-						(bind ?posiblesDespD2 ?posiblesDespD2 ?tupla)
+						(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla 2)
 					)
 				)
 
@@ -293,22 +301,24 @@
 				(bind ?posicionD1D2 (- ?i ?sumadados))
 				(if(> ?posicionD1D2 1) then
 					(if (= (nth$ ?posicionD1D2 $?tablero) 1) then
-						(printout t "podemos comer siuuu con el dado2" crlf)
+						;(printout t "podemos comer siuuu con el dado1+2" crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
-						(bind $?despD1D2comen $?despD1D2comen ?tupla)
+						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 1)
+						;(bind $?despD1D2comen $?despD1D2comen ?tupla)
 					)
 					(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
-						(bind ?posiblesDespD1D2 ?posiblesDespD1D2 ?tupla)
+						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+						(bind $?posiblesDespD1D2 $?posiblesDespD1D2 2)
 					)
 				)
 			)
 			(bind ?i (- ?i 1))
 		)	
 	)
-	(return (create$ $?posiblesDespD1 0 $?posiblesDespD2 0 $?posiblesDespD1D2 0 $?despD1comen 0 $?despD2comen 0 $?despD1D2comen 0))
+	(return (create$ $?posiblesDespD1 0 $?posiblesDespD2 0 $?posiblesDespD1D2 0 ))
 	
 )
 
@@ -360,7 +370,7 @@
     (printout t "Bienvenid@ a BackGammon" crlf)
 
     ; ponemos las fichas en el tablero
-    (bind $?tablero (create$ 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2))
+    (bind $?tablero (create$ 1 0 0 0 0 -5 0 -3 0 0 0 1 -5 0 0 0 1 0 1 0 0 0 0 -2))
     (imprimir-mapeo $?tablero)
 
 	(assert (BackGammon (ID 0)(padre -1)(tablero $?tablero)(profundidad 0)))
@@ -455,12 +465,15 @@
 (defrule movimientoREGLA
 	?m<- (movimiento 1)
 	?d<- (desplazar 0)
+	?cm1<- (comidasJ1 ?cmj1)			
+	?cm2<- (comidasJ2 ?cmj2)   
 	?cd1<- (contadordado1 ?contd1)
 	?cd2<- (contadordado2 ?contd2)
 	?cd1d2<- (contadorsumadados ?contd1d2)
 	?m1<- (movimientosdado1 $?movimientosdado1)
 	?m2<- (movimientosdado2 $?movimientosdado2)
 	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
+	?nam<- (pcomer $?pcomer)
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?t<- (turno ?turno)
@@ -476,14 +489,26 @@
 	(if(<= ?movimiento  ?contd1) then 
 		(retract ?m1m2)
 		(printout t "elige el dado 1" crlf) 
+
+		; hay que mirar si va a comer
+		(bind ?vaComer (nth$ ?movimiento $?pcomer))
+		(if (eq ?vaComer 1) then
+			(printout t "Ha elegido comer" crlf)
+			; hay que actualizar el numero de comidas para el otro contricante 			
+			; miramos que jugador somos
+			(if(eq ?turno 1) then
+				(retract ?cm2)
+				(assert (comidasJ2 (+ ?cmj2 1)))
+			else
+				(retract ?cm1)
+				(assert (comidasJ1 (+ ?cmj1 1)))
+			)
+
+		)
 		(bind ?desde (nth$ ?movimiento $?movimientosdado1))
 		(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
 
 		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
-
-		;(retract ?bg)
-		;?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
 
 		(imprimir-mapeo $?tableroNuevo)
 
@@ -498,6 +523,21 @@
 			(bind ?movimiento (read))
 		)
 
+		; hay que mirar si va a comer
+		(bind ?vaComer (nth$ ?movimiento $?pcomer))
+		(if (eq ?vaComer 1) then
+			(printout t "Ha elegido comer" crlf)
+			; hay que actualizar el numero de comidas para el otro contricante 			
+			; miramos que jugador somos
+			(if(eq ?turno 1) then
+				(retract ?cm2)
+				(assert (comidasJ2 (+ ?cmj2 1)))
+			else
+				(retract ?cm1)
+				(assert (comidasJ1 (+ ?cmj1 1)))
+			)
+
+		)
 		(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
 		(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
 		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
@@ -506,13 +546,27 @@
 		(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
 
 		(imprimir-mapeo $?tableroNuevo)
-
+		
 	else
 		(if(> ?movimiento (+ ?contd1 ?contd2)) then
 			(printout t "elige el dado1+2" crlf)
 			; ya no puede elegir ningun dado mas
 			(retract ?m1 ?m2)
+			; hay que mirar si va a comer
+			(bind ?vaComer (nth$ ?movimiento $?pcomer))
+			(if (eq ?vaComer 1) then
+				(printout t "Ha elegido comer" crlf)
+				; hay que actualizar el numero de comidas para el otro contricante 			
+				; miramos que jugador somos
+				(if(eq ?turno 1) then
+					(retract ?cm2)
+					(assert (comidasJ2 (+ ?cmj2 1)))
+				else
+					(retract ?cm1)
+					(assert (comidasJ1 (+ ?cmj1 1)))
+				)
 
+			)
 			(bind ?desde (nth$ (- ?movimiento ?contd2) $?movimientosdado1))
 			(bind ?hasta (nth$ (+ (- ?movimiento ?contd2) 1) $?movimientosdado1))
 
@@ -526,15 +580,25 @@
 		else
 			(retract ?m1m2)
 			(printout t "elige el dado 2" crlf)
-			
+			; hay que mirar si va a comer
+			(bind ?vaComer (nth$ ?movimiento $?pcomer))
+			(if (eq ?vaComer 1) then
+				(printout t "Ha elegido comer" crlf)
+				; hay que actualizar el numero de comidas para el otro contricante 			
+				; miramos que jugador somos
+				(if(eq ?turno 1) then
+					(retract ?cm2)
+					(assert (comidasJ2 (+ ?cmj2 1)))
+				else
+					(retract ?cm1)
+					(assert (comidasJ1 (+ ?cmj1 1)))
+				)
+
+			)
 			(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
 			(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
 
 			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
-
-			;(retract ?bg)
-			;?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
 
 			(imprimir-mapeo $?tableroNuevo)
 
@@ -548,7 +612,21 @@
 				(printout t "elige un movimiento valido del dado1!" crlf)
 				(bind ?movimiento (read))
 			)
+			; hay que mirar si va a comer
+			(bind ?vaComer (nth$ ?movimiento $?pcomer))
+			(if (eq ?vaComer 1) then
+				(printout t "Ha elegido comer" crlf)
+				; hay que actualizar el numero de comidas para el otro contricante 			
+				; miramos que jugador somos
+				(if(eq ?turno 1) then
+					(retract ?cm2)
+					(assert (comidasJ2 (+ ?cmj2 1)))
+				else
+					(retract ?cm1)
+					(assert (comidasJ1 (+ ?cmj1 1)))
+				)
 
+			)
 			(bind ?desde (nth$ ?movimiento $?movimientosdado1))
 			(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
 			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
@@ -614,21 +692,14 @@
 					(if (= (nth$ ?posicionD1 $?tablero) -1) then
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
-						(bind $?D1comen $?D1comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado1 $?movimientosdado1 1)
+						;(bind $?D1comen $?D1comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD1 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+						(bind $?movimientosdado1 $?movimientosdado1 2)
 					)
 				)
 
@@ -638,21 +709,14 @@
 					(if (= (nth$ ?posicionD2 $?tablero) -1) then
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
-						(bind $?D2comen $?D2comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado2 $?movimientosdado2 1)	
+						;(bind $?D2comen $?D2comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD2 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+						(bind $?movimientosdado2 $?movimientosdado2 2)
 					)
 				)
 
@@ -662,21 +726,14 @@
 					(if (= (nth$ ?posicionD1 $?tablero) -1) then
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
-						(bind $?D1D2comen $?D1D2comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 1)
+						;(bind $?D1D2comen $?D1D2comen ?tupla)
 					)
 					(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 2)
 					)
 				)
 			)
@@ -692,21 +749,14 @@
 					(if (= (nth$ ?posicionD1 $?tablero) 1) then
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
-						(bind $?D1comen $?D1comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado1 $?movimientosdado1 1)
+						;(bind $?D1comen $?D1comen ?tupla)
 					)
 					(if(< (nth$ ?posicionD1 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+						(bind $?movimientosdado1 $?movimientosdado1 2)
 					)	
 				)
 
@@ -716,21 +766,14 @@
 					(if (= (nth$ ?posicionD2 $?tablero) 1) then
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
-						(bind $?D2comen $?D2comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado2 $?movimientosdado2 1)
+						;(bind $?D2comen $?D2comen ?tupla)
 					)
 					(if(< (nth$ ?posicionD2 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD2 " utilizando el dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD2))
 						(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+						(bind $?movimientosdado2 $?movimientosdado2 2)
 					)
 				)
 
@@ -740,21 +783,14 @@
 					(if (= (nth$ ?posicionD1D2 $?tablero) 1) then
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
-						(bind $?D1D2comen $?D1D2comen ?tupla)
-						(if (= ?turno 1) then 
-							(bind ?comiJ2 (+ ?comiJ2 1))
-							(retract ?comJ2)
-							(assert (comidasJ2 ?comiJ2))
-						else 
-							(bind ?comiJ1 (+ ?comiJ1 1))
-							(retract ?comJ1)
-							(assert (comidasJ1 ?comiJ1))
-						)
+						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 1)
+						;(bind $?D1D2comen $?D1D2comen ?tupla)
 					)
 					(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1D2 " utilizando el dado1+dado2"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1D2))
 						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+						(bind $?movimientosdado1dado2 $?movimientosdado1dado2 2)
 					)
 				)
 			)
@@ -782,7 +818,6 @@
 	?cd2<-(contadordado2 0)
 	?cd1d2<-(contadorsumadados 0)
 	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
-   ; ?j2<- (jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?desplazar<-(desplazar 0)
 	?numfichas<- (fichasJugandoJugador1 ?numfichasj1)
@@ -794,7 +829,7 @@
 	(assert (dado2puedenComer (create$)))
 	(assert (dado1dado2puedenComer (create$)))
 
-	;(retract ?j2)
+	(bind $?podercomer (create$))
 
 	(printout t "------------------------------------------------------" crlf)
 	(printout t "TURNO DEL JUGADOR 1" crlf)
@@ -819,6 +854,7 @@
 	;(printout t (implode$ ?listas) crlf)
 
 	(bind ?l (implode$ ?listas))
+	;(printout t ?l crlf)
 
 
 	(printout t "------------------------------------------------------" crlf)
@@ -828,7 +864,12 @@
 	
 	(printout t "Eliga una de las siguientes opciones: " crlf)
 
-	; vamos a separar las listas
+
+
+	; vamos a separar las listas : lista de dado1 , dado2 y dado1+dado2
+
+	; dado1
+	; cuantos elementos tiene la lista
 	(bind ?dado1listabool 0)
 	(bind ?dado1lista (create$))
 	(bind ?i 1)
@@ -844,20 +885,24 @@
 		)
 	)
 	(printout t "Dado 1" crlf)
+	;(printout t ?dado1lista crlf)
 	(bind ?j 1)
 	(bind ?a 1)
 	(while (< ?j ?cont1)
 		(bind ?tupla (create$))
 		(bind ?elemento (nth$ ?j ?dado1lista))
 		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
-			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
-
+		(bind ?secome (nth (+ ?j 2) ?dado1lista))
+		;(printout t ?secome crlf)
+		(if (eq ?secome 1) then
+			(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
+			(bind ?podercomer ?podercomer 1)
 		else
 			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
 			(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
+			(bind ?podercomer ?podercomer 0)
 		)
-		(bind ?j (+ ?j 2))
+		(bind ?j (+ ?j 3))
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado1 ?cont1))
@@ -877,21 +922,24 @@
 			(bind ?cont2 (+ ?cont2 1))
 		)
 	)
-
 	(printout t "Dado 2" crlf)
+	;(printout t ?dado2lista crlf)
 	(bind ?j 1)
 	(while (< ?j ?cont2)
 		(bind ?tupla (create$))
 		(bind ?elemento (nth$ ?j ?dado2lista))
 		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado2lista))
-
-		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
-			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
+		(bind ?secome (nth (+ ?j 2) ?dado2lista))
+		;(printout t ?secome crlf)
+		(if (eq ?secome 1) then
+			(printout t " Opcion " ?a ") ["  ?elemento " COME -> "  ?siguienteElemento " ]" crlf)
+			(bind ?podercomer ?podercomer 1)
 		else
 			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
 			(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]"crlf)
+			(bind ?podercomer ?podercomer 0)
 		)
-		(bind ?j (+ ?j 2))
+		(bind ?j (+ ?j 3))
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado2 ?cont2))
@@ -915,49 +963,29 @@
 	)
 
 	(printout t "Dado 1+2" crlf)
+	;(printout t ?dado1d2lista crlf)
 	(bind ?j 1)
 	(while (< ?j ?cont3)
 		(bind ?tupla (create$))
 		(bind ?elemento (nth$ ?j ?dado1d2lista))
 		(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1d2lista))
-		(if (or (= ?siguienteElemento -1) (= ?siguienteElemento 25)) then
-			(printout t " Opcion " ?a ") ["  ?elemento " -> CASA]" crlf)
+		(bind ?secome (nth (+ ?j 2) ?dado1d2lista))
+		;(printout t ?secome crlf)
+		(if (eq ?secome 1) then
+			(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]"  crlf)
+			(bind ?podercomer ?podercomer 1)
 		else
 			(bind ?tupla ?tupla ?elemento ?siguienteElemento)
 			(printout t " Opcion " ?a ") ["  (implode$ ?tupla) "]" crlf)
+			(bind ?podercomer ?podercomer 0)
 		)
-		(bind ?j (+ ?j 2))
+		(bind ?j (+ ?j 3))
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadorsumadados ?cont3))
 
-
-
-	; (bind ?casabool 0)
-	; (bind ?casalista (create$))
-	; (bind ?i (+ ?i 1))
-	; (bind ?cont4 0)
-	; (while (= ?casabool 0)
-	; 	(bind ?elemento (nth$ ?i ?listas))
-	; 	;(printout t "Elemento: " ?elemento crlf)
-	; 	(if (= 0 ?elemento) then
-	; 		(bind ?casabool 1)
-	; 	else
-	; 		(bind ?casalista ?casalista (nth$ ?i ?listas))
-	; 		(bind ?i (+ ?i 1))
-	; 		(bind ?cont4 (+ ?cont4 1))
-	; 	)
-	; )
-	; (printout t "Mover a casa" crlf)
-	; (printout t ?casalista crlf)
-	; (bind ?j 1)
-	; (while (<= ?j ?cont4)
-	; 	(bind ?elemento (nth$ ?j ?casalista))
-	; 	(printout t " Opcion " ?a " ["  ?elemento " -> CASA]" crlf)
-	; 	(bind ?j (+ ?j 1))
-	; 	(bind ?a (+ ?a 1))
-	; )
-
+	(printout t  $?podercomer crlf)
+	(assert (pcomer $?podercomer))
 
 	(assert (movimiento 1))
 	;(retract ?t)  
