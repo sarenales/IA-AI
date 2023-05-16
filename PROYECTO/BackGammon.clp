@@ -322,26 +322,33 @@
 	
 )
 
-(deffunction actualizarTablero (?desd ?hast ?color $?tabler)
+(deffunction actualizarTablero (?desd ?hast ?color ?vaComer $?tabler)
 	(if (= ?color 1)then
 		(bind ?contenido (nth$ ?desd $?tabler))
 		(bind $?tabler (replace$ $?tabler ?desd ?desd (- ?contenido 1)))
-
 		(bind ?contenido (nth$ ?hast $?tabler))
-		(bind $?tabler (replace$ $?tabler ?hast ?hast (+ ?contenido 1)))
+		(if (eq ?vaComer 1)then
+			; si somos blanco y vamos a comer
+			; entonces vamos a quitar la ficha negra que esta en la posicion 
+			; ?hast y vamos a poner la ficha blanca en la posicion ?hast
+			(bind $?tabler (replace$ $?tabler ?hast ?hast (+ ?contenido 2)))
+		else
+			(bind $?tabler (replace$ $?tabler ?hast ?hast (+ ?contenido 1)))
+		)
 
-		(return $?tabler)
 	
 	else
 		(bind ?contenido (nth$ ?desd $?tabler))
 		(bind $?tabler (replace$ $?tabler ?desd ?desd (+ ?contenido 1)))
-
-
 		(bind ?contenido (nth$ ?hast $?tabler))
-		(bind $?tabler (replace$ $?tabler ?hast ?hast (- ?contenido 1)))
+		(if (eq ?vaComer 1)then
+			(bind $?tabler (replace$ $?tabler ?hast ?hast (- ?contenido 2)))
+		else
+			(bind $?tabler (replace$ $?tabler ?hast ?hast (- ?contenido 1)))
+		)
 
-		(return $?tabler)
 	)
+	(return $?tabler)
 )
 
 (deffacts inicial
@@ -349,9 +356,6 @@
 	(comidasJ1 0)				; fichas que tiene comidas el jugador 1 y tiene que sacar
 	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar   
 	(desplazar 0)   
-	; (movimientosdado1 (create$))	; lista de movimientos posibles con el dado 1
-	; (movimientosdado2 (create$))	; lista de movimientos posibles con el dado 2
-	; (movimientosdado1dado2 (create$))	; lista de movimientos posibles con el dado 1 y 2
 	(D1 0)
 	(D2 0)
 	(SD 0)
@@ -482,9 +486,10 @@
 
 	(bind ?movimiento (read))
 
-	(bind ?contd1 (div ?contd1 2))
-	(bind ?contd2 (div ?contd2 2))
-	(bind ?contd1d2 (div ?contd1d2 2))
+	(bind ?contd1 (div ?contd1 3))
+	(bind ?contd2 (div ?contd2 3))
+	(bind ?contd1d2 (div ?contd1d2 3))
+	;(printout t ?contd1 " " ?contd2 " " ?contd1d2 crlf)
 
 	(if(<= ?movimiento  ?contd1) then 
 		(retract ?m1m2)
@@ -508,7 +513,7 @@
 		(bind ?desde (nth$ ?movimiento $?movimientosdado1))
 		(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
 
-		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
 		(imprimir-mapeo $?tableroNuevo)
 
@@ -540,7 +545,7 @@
 		)
 		(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
 		(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
-		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
 
 		(retract ?bg ?m2)
 		(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
@@ -570,7 +575,7 @@
 			(bind ?desde (nth$ (- ?movimiento ?contd2) $?movimientosdado1))
 			(bind ?hasta (nth$ (+ (- ?movimiento ?contd2) 1) $?movimientosdado1))
 
-			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
 			(retract ?bg)
 			?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
@@ -598,7 +603,7 @@
 			(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
 			(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
 
-			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tablero))
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
 			(imprimir-mapeo $?tableroNuevo)
 
@@ -629,7 +634,7 @@
 			)
 			(bind ?desde (nth$ ?movimiento $?movimientosdado1))
 			(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
-			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color $?tableroNuevo))
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
 
 			(retract ?bg ?m1)
 			(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
@@ -906,6 +911,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado1 ?cont1))
+	;(printout t ?cont1 crlf)
 
 
 	(bind ?i (+ ?i 1))
@@ -943,6 +949,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado2 ?cont2))
+	;(printout t ?cont2 crlf)
 
 
 
@@ -983,8 +990,9 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadorsumadados ?cont3))
+	;(printout t ?cont3 crlf)
 
-	(printout t  $?podercomer crlf)
+	;(printout t  $?podercomer crlf)
 	(assert (pcomer $?podercomer))
 
 	(assert (movimiento 1))
@@ -1078,6 +1086,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado1 ?cont1))
+	;(printout t ?cont1 crlf)
 
 
 	(bind ?i (+ ?i 1))
@@ -1112,6 +1121,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado2 ?cont2))
+	;(printout t ?cont2 crlf)
 
 
 
@@ -1147,6 +1157,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadorsumadados ?cont3))
+	;(printout t ?cont3 crlf)
 
 
 
