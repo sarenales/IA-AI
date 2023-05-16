@@ -191,9 +191,6 @@
 	(bind $?posiblesDespD1 (create$))
 	(bind $?posiblesDespD2 (create$))
 	(bind $?posiblesDespD1D2 (create$))
-	(bind $?despD1comen (create$))
-	(bind $?despD2comen (create$))
-	(bind $?despD1D2comen (create$))
 	(if (eq ?color 1) then
 		(bind ?i 1)
 		(while(> 24 ?i)
@@ -271,7 +268,6 @@
 						(bind $?posiblesDespD1 $?posiblesDespD1 1)
 						;(bind $?despD1comen $?despD1comen ?tupla)
 					)
-
 					(if(< (nth$ ?posicionD1 $?tablero) 1) then
 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
 						(bind ?tupla (create$ ?i ?posicionD1))
@@ -349,6 +345,97 @@
 
 	)
 	(return $?tabler)
+)
+
+(deffunction posiblesDesplazamientosComidas (?color ?fichascomidas ?dado1 ?dado2 ?sumadados $?tablero)
+	(bind $?posiblesDespD1 (create$))
+	(bind $?posiblesDespD2 (create$))
+	(bind $?posiblesDespD1D2 (create$))
+
+	(if (eq ?color 1) then
+		; puedo mover la ficha i dado1 posiciones		
+		(bind ?posicionD1 (+ 0 ?dado1))
+		(if (= (nth$ ?posicionD1 $?tablero) -1) then
+			(bind ?tupla (create$ ?i ?posicionD1))
+			(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+			(bind $?posiblesDespD1 $?posiblesDespD1 1)
+		)
+		(if(> (nth$ ?posicionD1 $?tablero) -1) then
+			(bind ?tupla (create$ ?i ?posicionD1))
+			(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+			(bind $?posiblesDespD1 $?posiblesDespD1 2)
+		)
+		
+
+		; puedo mover la ficha i dado2 posiciones
+		(bind ?posicionD2 (+ 0 ?dado2))
+		(if (= (nth$ ?posicionD2 $?tablero) -1) then 
+			(bind ?tupla (create$ ?i ?posicionD2))
+			(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+			(bind $?posiblesDespD2 $?posiblesDespD2 1)
+		)
+		(if(> (nth$ ?posicionD2 $?tablero) -1) then
+			(bind ?tupla (create$ ?i ?posicionD2))
+			(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+			(bind $?posiblesDespD2 $?posiblesDespD2 2)
+		)
+		
+
+		; puedo mover la ficha i dado1+dado2 posiciones
+		(bind ?posicionD1D2 (+ 0 ?sumadados))
+		(if (= (nth$ ?posicionD1D2 $?tablero) -1) then 
+			(bind ?tupla (create$ ?i ?posicionD1D2))
+			(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+			(bind $?posiblesDespD1D2 $?posiblesDespD1D2 1)
+		)
+		(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
+			(bind ?tupla (create$ ?i ?posicionD1D2))
+			(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+			(bind $?posiblesDespD1D2 $?posiblesDespD1D2 2)
+		)
+		
+		
+	else
+		; puedo mover la ficha i dado1 posiciones
+		(bind ?posicionD1 (- 25 ?dado1))
+			(if (= (nth$ ?posicionD1 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+				(bind $?posiblesDespD1 $?posiblesDespD1 1)
+			)
+			(if(< (nth$ ?posicionD1 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+				(bind $?posiblesDespD1 $?posiblesDespD1 2)
+			)	
+
+		; puedo mover la ficha i dado2 posiciones
+		(bind ?posicionD2 (- 25 ?dado2))
+			(if (= (nth$ ?posicionD2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla)
+				(bind $?posiblesDespD2 $?posiblesDespD2 1)
+			)
+			(if(< (nth$ ?posicionD2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?posiblesDespD2 $?posiblesDespD2 ?tupla 2)
+			)
+		
+
+		; puedo mover la ficha i dado1+dado2 posiciones
+		(bind ?posicionD1D2 (- 25 ?sumadados))
+			(if (= (nth$ ?posicionD1D2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+				(bind $?posiblesDespD1D2 $?posiblesDespD1D2 1)
+			)
+			(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?posiblesDespD1D2 $?posiblesDespD1D2 ?tupla)
+				(bind $?posiblesDespD1D2 $?posiblesDespD1D2 2)
+			)		
+	)
+	(return (create$ $?posiblesDespD1 0 $?posiblesDespD2 0 $?posiblesDespD1D2 0 ))
 )
 
 (deffacts inicial
@@ -671,9 +758,6 @@
 	?m1<- (movimientosdado1 $?movimientosdado1)
 	?m2<- (movimientosdado2 $?movimientosdado2)
 	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
-	?D1c<- (dado1puedenComer $?D1comen)
-	?D2c<- (dado2puedenComer $?D2comen)
-	?D1cD2c<- (dado1dado2puedenComer $?D1D2comen)
 	?comJ1<- (comidasJ1 ?comiJ1)
 	?comJ2<- (comidasJ2 ?comiJ2)
 	?d1 <- (D1 ?dado1)
@@ -805,9 +889,122 @@
 	(assert (movimientosdado1 $?movimientosdado1))
 	(assert (movimientosdado2 $?movimientosdado2))
 	(assert (movimientosdado1dado2 $?movimientosdado1dado2)) 
-	(assert (dado1puedenComer $?D1comen))
-	(assert (dado2puedenComer $?D2comen))
-	(assert (dado1dado2puedenComer $?D1D2comen))
+	(retract ?d)
+	(assert (desplazar 0))
+	(retract ?d1 ?d2 ?sumad1d2)
+	(assert (movimiento 1))
+)
+
+(defrule desplazarComidasREGLA
+	?d<-(desplazarComidas 1)
+	?m1<- (movimientosdado1 $?movimientosdado1)
+	?m2<- (movimientosdado2 $?movimientosdado2)
+	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
+	?comJ1<- (comidasJ1 ?comiJ1)
+	?comJ2<- (comidasJ2 ?comiJ2)
+	?d1 <- (D1 ?dado1)
+	?d2 <- (D2 ?dado2)
+	?sumad1d2 <- (SD ?sumadados)
+	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
+	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	(test (eq ?turno ?nombre))
+	=>
+	(retract ?d ?m1 ?m2 ?m1m2)
+	(if (eq ?color 1) then
+		; puedo mover la ficha i dado1 posiciones		
+		(bind ?posicionD1 (+ 0 ?dado1))
+		(if(< ?posicionD1 24) then 
+			(if (= (nth$ ?posicionD1 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+				(bind $?movimientosdado1 $?movimientosdado1 1)
+			)
+			(if(> (nth$ ?posicionD1 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+				(bind $?movimientosdado1 $?movimientosdado1 2)
+			)
+		)
+
+		; puedo mover la ficha i dado2 posiciones
+		(bind ?posicionD2 (+ 0 ?dado2))
+		(if(< ?posicionD2 24) then
+			(if (= (nth$ ?posicionD2 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+				(bind $?movimientosdado2 $?movimientosdado2 1)	
+			)
+			(if(> (nth$ ?posicionD2 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+				(bind $?movimientosdado2 $?movimientosdado2 2)
+			)
+		)
+
+		; puedo mover la ficha i dado1+dado2 posiciones
+		(bind ?posicionD1D2 (+ 0 ?sumadados))
+		(if(< ?posicionD1D2 24) then
+			(if (= (nth$ ?posicionD1 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 1)
+			)
+			(if(> (nth$ ?posicionD1D2 $?tablero) -1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 2)
+			)
+		)		
+	else
+		(bind ?posicionD1 (- 25 ?dado1))
+		(if(> ?posicionD1 1) then
+			(if (= (nth$ ?posicionD1 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+				(bind $?movimientosdado1 $?movimientosdado1 1)
+			)
+			(if(< (nth$ ?posicionD1 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1))
+				(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
+				(bind $?movimientosdado1 $?movimientosdado1 2)
+			)	
+		)
+
+		; puedo mover la ficha i dado2 posiciones
+		(bind ?posicionD2 (- 25 ?dado2))
+		(if(> ?posicionD2 1) then
+			(if (= (nth$ ?posicionD2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+				(bind $?movimientosdado2 $?movimientosdado2 1)
+			)
+			(if(< (nth$ ?posicionD2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD2))
+				(bind $?movimientosdado2 $?movimientosdado2 ?tupla)
+				(bind $?movimientosdado2 $?movimientosdado2 2)
+			)
+		)
+
+		; puedo mover la ficha i dado1+dado2 posiciones
+		(bind ?posicionD1D2 (- 25 ?sumadados))
+		(if(> ?posicionD1D2 1) then
+			(if (= (nth$ ?posicionD1D2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 1)
+			)
+			(if(< (nth$ ?posicionD1D2 $?tablero) 1) then
+				(bind ?tupla (create$ ?i ?posicionD1D2))
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 ?tupla)
+				(bind $?movimientosdado1dado2 $?movimientosdado1dado2 2)
+			)
+		)
+
+	)	
+	(assert (movimientosdado1 $?movimientosdado1))
+	(assert (movimientosdado2 $?movimientosdado2))
+	(assert (movimientosdado1dado2 $?movimientosdado1dado2)) 
 	(retract ?d)
 	(assert (desplazar 0))
 	(retract ?d1 ?d2 ?sumad1d2)
@@ -1086,7 +1283,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado1 ?cont1))
-	;(printout t ?cont1 crlf)
+
 
 
 	(bind ?i (+ ?i 1))
@@ -1121,7 +1318,7 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadordado2 ?cont2))
-	;(printout t ?cont2 crlf)
+
 
 
 
@@ -1157,34 +1354,6 @@
 		(bind ?a (+ ?a 1))
 	)
 	(assert (contadorsumadados ?cont3))
-	;(printout t ?cont3 crlf)
-
-
-
-	; (bind ?casabool 0)
-	; (bind ?casalista (create$))
-	; (bind ?i (+ ?i 1))
-	; (bind ?cont4 0)
-	; (while (= ?casabool 0)
-	; 	(bind ?elemento (nth$ ?i ?listas))
-	; 	;(printout t "Elemento: " ?elemento crlf)
-	; 	(if (= 0 ?elemento) then
-	; 		(bind ?casabool 1)
-	; 	else
-	; 		(bind ?casalista ?casalista (nth$ ?i ?listas))
-	; 		(bind ?i (+ ?i 1))
-	; 		(bind ?cont4 (+ ?cont4 1))
-	; 	)
-	; )
-	; (printout t "Mover a casa" crlf)
-	; (printout t ?casalista crlf)
-	; (bind ?j 1)
-	; (while (<= ?j ?cont4)
-	; 	(bind ?elemento (nth$ ?j ?casalista))
-	; 	(printout t " Opcion " ?a " ["  ?elemento " -> CASA]" crlf)
-	; 	(bind ?j (+ ?j 1))
-	; 	(bind ?a (+ ?a 1))
-	; )
 
 
 	(assert (movimiento 1))
@@ -1193,12 +1362,21 @@
 
 )
 
+
 (defrule sacarComidasJ1
 	?j<-(comidasJ1 ?c)
 	(test (> ?c 0))
 	(turno 1)
 	=>
 	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
+
+	; vamos a tener 4 casos diferentes
+	; 1) 2> ; elige 1 o 2 dado y sigue habiendo
+	; 2) 2= ; elige 1 o 2 dado y no hay mas
+	; 3) 1> ; elige 1+2 dado y sigue habiendo
+	; 4) 1= ; elige cualquier tipo dado y no hay mas
+
+
 	(bind ?dados (tirarDados))
     (bind ?dado1J2 (nth$ 1 ?dados))
     (bind ?dado2J2 (nth$ 2 ?dados))
