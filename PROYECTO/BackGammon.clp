@@ -600,7 +600,7 @@
 	?t<- (turno ?turno)
 	(test (= ?turno ?nombre))
 	=>
-
+	(retract ?nam)
 	(bind ?comidasturnoJ1 0)
 	(bind ?comidasturnoJ2 0)
 	(bind ?movimiento (read))
@@ -956,6 +956,7 @@
 	(test (eq ?turno ?nombre))
 	=>
 	(retract ?d ?m1 ?m2 ?m1m2)
+	(assert (desplazarComidas 0))
 	(if (eq ?color 1) then
 		; puedo mover la ficha i dado1 posiciones
 		(bind ?posicionD1 (+ 0 ?dado1))
@@ -1051,13 +1052,13 @@
 
 
 (defrule movimientoComidasREGLA
-	?s1<- (situacionJ1 1)
-	?s2<- (situacionJ2 1)
+	?s1<- (situacionJ1 ?situa1)
+	?s2<- (situacionJ2 ?situa2)
 	?m<- (movimientoComidas 1)
 	?d<- (desplazarComidas 0)
-	?duf<- (desplazarUnaFicha 0)	
-	?d1 <- (D1 ?dado1)
-	?d2 <- (D2 ?dado2)
+	;?duf<- (desplazarUnaFicha 0)	
+	; ?d1 <- (D1 ?dado1)
+	; ?d2 <- (D2 ?dado2)
 	?cm1<- (comidasJ1 ?cmj1)			
 	?cm2<- (comidasJ2 ?cmj2)   
 	?cd1<- (contadordado1 ?contd1)
@@ -1072,11 +1073,11 @@
 	?t<- (turno ?turno)
 	(test (= ?turno ?nombre))
 	=>
+	(retract ?nam)
 	(bind ?movimiento (read))
 	(bind ?contd1 (div ?contd1 3))
 	(bind ?contd2 (div ?contd2 3))
 	(bind ?contd1d2 (div ?contd1d2 3))
-
 
 
 	; tenemos que saber que jugador somos
