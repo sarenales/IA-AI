@@ -354,7 +354,6 @@
 
 	(if (eq ?color 1) then
 		; puedo mover la ficha i dado1 posiciones		
-		(printout t "looool" crlf)
 		(bind ?posicionD1 (+ 0 ?dado1))
 		(if (= (nth$ ?posicionD1 $?tablero) -1) then
 			(bind ?tupla (create$ 0 ?posicionD1))
@@ -2046,11 +2045,11 @@
 	?cd1<-(contadordado1 0)
 	?cd2<-(contadordado2 0)
 	?cd1d2<-(contadorsumadados 0)
-	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 1)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
+	?j2<-(jugador (tipo ?tipoj2)(color ?colorj2)(nombre 2)(fichasJugando ?fichasJugandoj2)(fichasCasa ?fichasCasaj2)(fichasUltimo ?fichasUltimoj2))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?desplazar<-(desplazar 0)
 	?desplcom<- (desplazarComidas 0)
-	?numfichas<- (fichasJugandoJugador1 ?numfichasj2)
+	?numfichas<- (fichasJugandoJugador2 ?numfichasj2)
 	=>
 	(assert (movimientosdado1 (create$)))	
 	(assert (movimientosdado2 (create$)))	
@@ -2062,7 +2061,7 @@
 	(printout t "TURNO DEL JUGADOR 2" crlf)
 	(imprimir-mapeo $?tablero)
 
-	(retract ?d1 ?d2 ?d1d2 ?desplazar ?cd1 ?cd2 ?cd1d2)
+	(retract ?d1 ?d2 ?d1d2 ?desplazar ?cd1 ?cd2 ?cd1d2 ?desplcom) 
 
 	(bind ?dados (tirarDados))
     (bind ?dado1 (nth$ 1 ?dados))
@@ -2073,8 +2072,9 @@
 	(assert (D2 ?dado2))
 	(assert (SD ?sumadados))
 
-	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra.")
+	(printout t "Sigues teniendo fichas comidas. Primero debes sacar estas antes de mover cualquier otra." crlf)
 	(assert (desplazarComidas 1))
+	(printout t "color del jugador 2 " ?colorj2 crlf)
 	(bind ?listas (posiblesDesplazamientosComidas ?colorj2 ?c ?dado1 ?dado2 ?sumadados $?tablero))
 
 	;(printout t (implode$ ?listas) crlf)
