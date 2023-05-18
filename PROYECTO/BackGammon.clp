@@ -469,8 +469,57 @@
 					)
 				)
 			)
+			(bind ?i (+ ?i 1))
+		)
+	else
+		(bind ?i 24)
+		(while(< 1 ?i)
+			; hay alguna ficha blanca en la posicion i
+			(if (< (nth$ ?i $?tablero) 0) then		
+				(bind ?posicionD1 (- ?i ?dado))
+				(if(> ?posicionD1 1) then 
+					(if (= (nth$ ?posicionD1 $?tablero) 1) then
+						(bind ?tupla (create$ ?i ?posicionD1))
+						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 1)
+					)
+					(if(> (nth$ ?posicionD1 $?tablero) 1) then
+						(bind ?tupla (create$ ?i ?posicionD1))
+						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+						(bind $?posiblesDespD1 $?posiblesDespD1 2)
+					)
+				)
+			)
+			(bind ?i (- ?i 1))
 		)
 	)
+	(return (create$ $?posiblesDespD1 -1))
+)
+
+(deffunction MirarSiUltimoCuadrante (?posicionFicha ?color)
+	(if (eq ?color 1) then
+		(if (and (>= ?posicionFicha 19) (<= ?posicionFicha 24)) then
+			(return 1)
+		)
+	else
+		(if (and (>= ?posicionFicha 1) (<= ?posicionFicha 6)) then
+			(return 1)
+		)
+	)
+	(return 0)
+)
+
+(deffunction MirarContricanteSiUltimoCuadrante (?posicionFicha ?color)
+	(if (eq ?color 0) then
+		(if (and (>= ?posicionFicha 19) (<= ?posicionFicha 24)) then
+			(return 1)
+		)
+	else
+		(if (and (>= ?posicionFicha 1) (<= ?posicionFicha 6)) then
+			(return 1)
+		)
+	)
+	(return 0)
 )
 
 (deffacts inicial
@@ -479,8 +528,10 @@
 	(comidasJ2 0)				; fichas que tiene comidas el jugador 2 y tiene que sacar   
 	(desplazar 0)   
 	(desplazarComidas 0)
+	(desplazarUnaFicha 0)
 	(movimiento 0)
 	(movimientoComidas 0)
+	(movimientoUnaFicha 0)
 	(D1 0)
 	(D2 0)
 	(SD 0)
@@ -489,6 +540,8 @@
 	(contadorsumadados 0)
 	(fichasJugandoJugador1 24)
 	(fichasJugandoJugador2 24)
+	(fichasUltimoCuaJ1 5)
+	(fichasUltimoCuaJ2 5)
 	(situacionJ1 0) 				; normal o sacarComidas
 	(situacionJ2 0) 				; normal o sacarComidas
 )
@@ -501,7 +554,7 @@
     (printout t "Bienvenid@ a BackGammon" crlf)
 
     ; ponemos las fichas en el tablero
-    (bind $?tablero (create$ 1 0 0 0 0 -5 0 -3 0 0 0 1 -5 0 0 0 1 0 1 0 0 0 0 -2))
+    (bind $?tablero (create$ 2 0 0 0 0 -5 0 -3 0 0 0 5 -5 0 0 0 3 0 5 0 0 0 0 -2))
     (imprimir-mapeo $?tablero)
 
 	(assert (BackGammon (ID 0)(padre -1)(tablero $?tablero)(profundidad 0)))
@@ -594,12 +647,14 @@
 )
 
 (defrule movimientoREGLA
-	?s1<- (situacionJ1 0)
-	?s2<- (situacionJ2 0)
+	?s1<- (situacionJ1 ?situa1)
+	?s2<- (situacionJ2 ?situa2)
 	?m<- (movimiento 1)
 	?d<- (desplazar 0)
 	?mc<- (movimientoComidas 0)
 	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?cm1<- (comidasJ1 ?cmj1)			
 	?cm2<- (comidasJ2 ?cmj2)   
 	?cd1<- (contadordado1 ?contd1)
@@ -612,23 +667,26 @@
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?t<- (turno ?turno)
+	?fu1<- (fichasUltimoCuaJ1 ?fichasUltimoJ1)
+	?fu2<- (fichasUltimoCuaJ2 ?fichasUltimoJ2)
 	(test (= ?turno ?nombre))
+	(test (or (= ?situa1 0)(= ?situa2 0)))
 	=>
 	(bind ?comidasturnoJ1 0)
 	(bind ?comidasturnoJ2 0)
 	(bind ?movimiento (read))
 
 	(bind ?contd1 (div ?contd1 3))
-	(printout t "contd1: " ?contd1 crlf)
 	(bind ?contd2 (div ?contd2 3))
-	(printout t "contd2: " ?contd2 crlf)
 	(bind ?contd1d2 (div ?contd1d2 3))
-	(printout t "contd1d2: " ?contd1d2 crlf)
 
 	(bind ?lmovdados1 (length$ $?movimientosdado1))
 	(bind ?lmovdados2 (length$ $?movimientosdado2))
 	(bind ?lmovdados1d2 (length$ $?movimientosdado1dado2))
 
+	(bind ?fichasUltimo 0)
+	(bind ?fichasUltimoContrario 0)
+	
 	; hay que comprobar que se puede hacer movimientos, sino pues pierde el turno
 	(if (or (> ?lmovdados1 0)(> ?lmovdados2 0)(> ?lmovdados1d2 0))then
 		(if(<= ?movimiento  ?contd1) then 
@@ -645,7 +703,6 @@
 					(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 					(retract ?s2)
 					(assert (situacionJ2 1))
-
 				else
 					(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
 					(retract ?s1)
@@ -654,9 +711,23 @@
 
 			)
 			(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado1))
-			;(printout t "desde: " ?desde crlf)
 			(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado1))
-			;(printout t "hasta: " ?hasta crlf)
+
+
+			(if (eq ?vaComer 1)then
+				(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulticontri 1) then
+					(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+				)
+			)
+
+
+
+			(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+			(if (eq ?ulti 1) then
+				(bind ?fichasUltimo (+ ?fichasUltimo 1))
+			)
+
 
 			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
@@ -692,6 +763,19 @@
 			)
 			(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2) $?movimientosdado2))
 			(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
+
+			(if (eq ?vaComer 1)then
+				(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulticontri 1) then
+					(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+				)
+			)
+
+			(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+			(if (eq ?ulti 1) then
+				(bind ?fichasUltimo (+ ?fichasUltimo 1))
+			)
+
 			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
 
 			(retract ?bg ?m2)
@@ -722,9 +806,21 @@
 
 				)
 				(bind ?desde (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 2)  $?movimientosdado1dado2))
-				(printout t "desde: " ?desde crlf)
+				;(printout t "desde: " ?desde crlf)
 				(bind ?hasta (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 1) $?movimientosdado1dado2))
-				(printout t "hasta: " ?hasta crlf)
+				;(printout t "hasta: " ?hasta crlf)
+
+				(if (eq ?vaComer 1)then
+					(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+					(if (eq ?ulticontri 1) then
+						(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+					)
+				)
+
+				(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulti 1) then
+					(bind ?fichasUltimo (+ ?fichasUltimo 1))
+				)
 
 				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
@@ -757,6 +853,18 @@
 				;(printout t "desde: " ?desde crlf)
 				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
 				;(printout t "hasta: " ?hasta crlf)
+
+				(if (eq ?vaComer 1)then
+					(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+					(if (eq ?ulticontri 1) then
+						(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+					)
+				)
+
+				(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulti 1) then
+					(bind ?fichasUltimo (+ ?fichasUltimo 1))
+				)
 
 				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
@@ -793,11 +901,34 @@
 				(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado1))
 				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
 
+				(if (eq ?vaComer 1)then
+					(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+					(if (eq ?ulticontri 1) then
+						(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+					)
+				)
+
+				(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulti 1) then
+					(bind ?fichasUltimo (+ ?fichasUltimo 1))
+				)
+
+	
 				(retract ?bg ?m1)
 				(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
 
 				(imprimir-mapeo $?tableroNuevo)
 			)
+		)
+		(if (eq ?turno 1)then 
+			(retract ?fu1 ?fu2)
+			(assert (fichasUltimoCuaJ1 (+ ?fichasUltimo ?fichasUltimoJ1)))
+			(assert (fichasUltimoCuaJ2 (- ?fichasUltimoJ2 ?fichasUltimoContrario)))		
+			
+		else
+			(retract ?fu1 ?fu2)
+			(assert (fichasUltimoCuaJ2 (+ ?fichasUltimo ?fichasUltimoJ2)))
+			(assert (fichasUltimoCuaJ1 (- ?fichasUltimoJ1 ?fichasUltimoContrario)))
 		)
 	else 
 		(printout t "No hay movimientos posibles" crlf)
@@ -834,6 +965,8 @@
 	?d<- (desplazar 1)
 	?mc<- (movimientoComidas 0)
 	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?m1<- (movimientosdado1 $?movimientosdado1)
 	?m2<- (movimientosdado2 $?movimientosdado2)
 	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
@@ -1089,10 +1222,9 @@
 	(assert (desplazarComidas 0))
 	(assert (movimientoComidas 1))
 	
-	(retract ?d1 ?d2 ?sumad1d2)
+	;(retract ?d1 ?d2 ?sumad1d2)
 	
 )
-
 
 (defrule movimientoComidasREGLA
 	?s1<- (situacionJ1 ?situa1)
@@ -1101,9 +1233,11 @@
 	?d<- (desplazar 0)
 	?mc<- (movimientoComidas 1)
 	?dc<- (desplazarComidas 0)
-	;?duf<- (desplazarUnaFicha 0)	
-	; ?d1 <- (D1 ?dado1)
-	; ?d2 <- (D2 ?dado2)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
+	?d1 <- (D1 ?dado1)
+	?d2 <- (D2 ?dado2)
+	?d3 <- (SD ?sumadados)
 	?cm1<- (comidasJ1 ?cmj1)			
 	?cm2<- (comidasJ2 ?cmj2)   
 	?cd1<- (contadordado1 ?contd1)
@@ -1116,6 +1250,8 @@
 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?t<- (turno ?turno)
+	?fu1<- (fichasUltimoCuaJ1 ?fichasUltimoJ1)
+	?fu2<- (fichasUltimoCuaJ2 ?fichasUltimoJ2)
 	(test (= ?turno ?nombre))
 	(test (or (= ?situa1 1)(= ?situa2 1)))
 	=>
@@ -1124,7 +1260,14 @@
 	(bind ?lmovdados2 (length$ $?movimientosdado2))
 	(bind ?lmovdados1d2 (length$ $?movimientosdado1dado2))
 
-
+	(retract ?cd1 ?cd2 ?cd1d2 ?d1 ?d2 ?d3)
+	;(assert (contadordado1 0))
+	;(assert (contadordado2 0))
+	(assert (contadorsumadados 0))
+	(assert (D1 0))
+	(assert (D2 0))
+	(assert (SD 0))
+	
 	; hay que comprobar que se puede hacer movimientos, sino pues pierde el turno
 	(if (or (> ?lmovdados1 0)(> ?lmovdados2 0)(> ?lmovdados1d2 0))then
 		(bind ?movimiento (read))
@@ -1136,6 +1279,9 @@
 		(bind ?contd2 (div ?contd2 3))
 		(bind ?contd1d2 (div ?contd1d2 3))
 
+		;(bind ?fichasUltimo 0)
+		(bind ?fichasUltimoContrario 0)
+
 
 		; tenemos que saber que jugador somos
 		(if(eq ?turno 1) then
@@ -1146,7 +1292,7 @@
 
 		; si elige el dado 1 primero
 		(if(<= ?movimiento  ?contd1) then 
-			(retract ?m1m2)
+			; (retract ?m1m2)
 			(printout t "elige el dado 1" crlf) 
 			; hay que mirar si va a comer
 			(bind ?vaComer (nth$ ?movimiento $?pcomer))
@@ -1162,11 +1308,19 @@
 					(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 				)
 			)
-			;(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado1))
 			(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado1))
+
+			(if (eq ?vaComer 1)then
+				(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulticontri 1) then
+					(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+				)
+			)
 			(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tablero))
 			(imprimir-mapeo $?tableroNuevo)
-			(retract ?m1)
+			;(retract ?m1)
+
+
 			(if (= ?turno 1)then 
 				(bind ?ComidasQuedan ?comidasturnoJ1)
 			else 
@@ -1176,73 +1330,119 @@
 			(if (= ?ComidasQuedan 0) then ; ya no hay comidas->tratar solo un movimiento TODO
 				; hay que tratar el otro movimiento como normal. 
 				; puede mover cualquier movimiento del tablero
-				(retract ?s1)
+				(retract ?s1 ?duf ?mc ?d2 ?m1 ?m1m2)
+				(assert (contadordado1 0))
+				(assert (movimientosdado1 (create$)))
+				(assert (movimientosdado1dado2 (create$)))
 				(assert (situacionJ1 0))
-				(printout t "Ahora elige un movimiento con el dado2" crlf)
-				(assert (desplazarUnaFicha 0))
-				;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
-				; (bind ?j 1)
-				; (bind ?a 1)
-				; (while (< ?j ?cont1)
-				; 	(bind ?tupla (create$))
-				; 	(bind ?elemento (nth$ ?j ?lista))
-				; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-				; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
-				; 	(if (eq ?secome 1) then
-				; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
-				; 		(bind ?podercomer ?podercomer 1)
-				; 	else
-				; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
-				; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
-				; 		(bind ?podercomer ?podercomer 0)
-				; 	)
-				; 	(bind ?j (+ ?j 3))
-				; 	(bind ?a (+ ?a 1))
-				; )
-				; (assert (pcomer $?podercomer))
-				(if(= ?ComidasQuedan 0)then 
-					; en caso de ya no tener comidas, hay que pasar a un estado normal
-					(retract ?s1)
-					(assert (situacionJ1 0))
+				(assert (movimientoComidas 0))
+				(assert (desplazarUnaFicha 1))
+				(assert (D2 ?dado2))
+
+				(bind $?podercomer (create$))
+				(printout t "Ahora puedes mover cualquier ficha del tablero" crlf)
+				(printout t "elige algun movimiento usando el dado 2" crlf)
+				
+				(bind $?listas (posibleDesplazamientoUnaficha ?color ?dado2 $?tablero))
+				;(printout t (implode$ $?listas) crlf)
+
+				(retract ?m2)
+				(assert (movimientosdado2 $?listas))
+				(bind $?dado2listabool 0)
+				(bind $?dado2lista $?listas)
+				(bind ?i 1)
+				(bind ?cont2 0)
+				(while (= $?dado2listabool 0)
+					(bind ?elemento (nth$ ?i $?listas))
+					(if (= -1 ?elemento) then
+						(bind $?dado2listabool 1)
+					else
+					;	(bind ?dado2lista ?dado2lista (nth$ ?i $?listas))
+						(bind ?i (+ ?i 1))
+						(bind ?cont2 (+ ?cont2 1))
+					)
 				)
+				(bind ?j 1)
+				(bind ?a 1)
+				(while (< ?j ?cont2)
+					(bind ?tupla (create$))
+					(bind ?elemento (nth$ ?j $?dado2lista))
+					(bind ?siguienteElemento (nth$ (+ ?j 1) $?dado2lista))
+					(bind ?secome (nth (+ ?j 2) $?dado2lista))
+					(if (eq ?secome 1) then
+						(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
+						(bind ?podercomer ?podercomer 1)
+					else
+						(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+						(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
+						(bind ?podercomer ?podercomer 0)
+					)
+					(bind ?j (+ ?j 3))
+					(bind ?a (+ ?a 1))
+				)
+				(retract ?cd2 ?nam)
+				(assert (contadordado2 ?cont2))
+				(assert (pcomer $?podercomer))
+
+				
 			else ; sigue habiendo comidas
 				(if(eq ?turno 1) then
 					(bind ?comidasturnoJ1 (- ?comidasturnoJ1 1))
 				else
 					(bind ?comidasturnoJ2 (- ?comidasturnoJ2 1))
 				)
-				(printout t "Ahora elige un movimiento con el dado2" crlf)
-				(bind ?movimiento (read))
-				(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
-					(printout t "elige un movimiento valido del dado2!" crlf)
+				(if (or (> ?lmovdados1 0)(> ?lmovdados2 0)(> ?lmovdados1d2 0))then
+					(printout t "Ahora elige un movimiento con el dado2" crlf)
 					(bind ?movimiento (read))
-				)
-				(bind ?vaComer (nth$ ?movimiento $?pcomer))
-				(if (eq ?vaComer 1) then
-					(printout t "Ha elegido comer" crlf)
-					(if(eq ?turno 2) then
-						(retract ?s1)
-						(assert (situacionJ1 1))
-						(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-					else
-						(retract ?s2)
-						(assert (situacionJ2 1))
-						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+					(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
+						(printout t "elige un movimiento valido del dado2!" crlf)
+						(bind ?movimiento (read))
 					)
-				)
-				;(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2)$?movimientosdado2))
-				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
-				(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tablero))
+					(bind ?vaComer (nth$ ?movimiento $?pcomer))
+					(if (eq ?vaComer 1) then
+						(printout t "Ha elegido comer" crlf)
+						(if(eq ?turno 2) then
+							(retract ?s1)
+							(assert (situacionJ1 1))
+							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+						else
+							(retract ?s2)
+							(assert (situacionJ2 1))
+							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+						)
+					)
+					;(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2)$?movimientosdado2))
+					(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
+					(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tableroNuevo))
+					(if (eq ?vaComer 1)then
+						(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+						(if (eq ?ulticontri 1) then
+							(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+						)
+					)
+					(retract ?bg ?m2)
+					(assert (BackGammon (ID ?id)(padre ?padre)(tablero $?tableroNuevo)(profundidad ?profundidad)))
 
-				(retract ?bg ?m2)
-				(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
-				(imprimir-mapeo $?tableroNuevo)
-				(if (= ?cmj1 0) then 
-					; en caso de ya no tener comidas, hay que pasar a un estado normal
-					(retract ?s1)
-					(assert (situacionJ1 0))
+					(imprimir-mapeo $?tableroNuevo)
+					(if (= ?cmj1 0) then 
+						; en caso de ya no tener comidas, hay que pasar a un estado normal
+						(retract ?s1)
+						(assert (situacionJ1 0))
+					)
+					(if (= ?turno 1) then
+						(retract ?t)
+						(assert (turno 2))
+					else
+						(retract ?t)
+						(assert (turno 1))
+					)
+					(assert (contadordado1 0))
+					(assert (contadordado2 0))
+				else 
+					(printout t "No hay movimientos posibles con el dado2" crlf)
+					(printout t "colega pierdes turno" crlf)				
 				)
+				
 				
 			)
 			
@@ -1268,12 +1468,17 @@
 						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 					)
 				)
-				(bind ?hasta (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 1)  $?movimientosdado1))
+				(bind ?hasta (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 1)  $?movimientosdado1dado2))
 
 				(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tablero))
-
+				(if (eq ?vaComer 1)then
+					(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+					(if (eq ?ulticontri 1) then
+						(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+					)
+				)
 				(retract ?bg)
-				?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+				?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero $?tableroNuevo)(profundidad ?profundidad)))
 
 				(imprimir-mapeo $?tableroNuevo)
 				(retract ?m1m2)
@@ -1287,7 +1492,17 @@
 					; en caso de ya no tener comidas, hay que pasar a un estado normal
 					(retract ?s1)
 					(assert (situacionJ1 0))
+
+				)			
+				(if (= ?turno 1) then
+						(retract ?t)
+						(assert (turno 2))
+					else
+						(retract ?t)
+						(assert (turno 1))
 				)
+				(assert (contadordado1 0))
+				(assert (contadordado2 0))				
 			else ;elige dado2 primero
 				(retract ?m1m2)
 				(printout t "elige el dado 2" crlf)
@@ -1307,103 +1522,403 @@
 						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 					)
 				)
-				;(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2) $?movimientosdado2))
 				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
-
+				(if (eq ?vaComer 1)then
+					(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+					(if (eq ?ulticontri 1) then
+						(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+					)
+				)
 				(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tablero))
 
 				(imprimir-mapeo $?tableroNuevo)
 
 				(retract ?m2)
-				(if (= ?turno 1)then 
-					(bind ?ComidasQuedan ?comidasturnoJ1)
-				else 
-					(bind ?ComidasQuedan ?comidasturnoJ2)
-				)
-				(if (> ?ComidasQuedan 1) then ; ya no hay fichas comidas -> tratar solamente una ficha TODO
-					(printout t "Ahora elige un movimiento con el dado2" crlf)
-					(assert (desplazarUnaFicha 0))
-					;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
-					; (bind ?j 1)
-					; (bind ?a 1)
-					; (while (< ?j ?cont1)
-					; 	(bind ?tupla (create$))
-					; 	(bind ?elemento (nth$ ?j ?lista))
-					; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-					; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
-					; 	(if (eq ?secome 1) then
-					; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
-					; 		(bind ?podercomer ?podercomer 1)
-					; 	else
-					; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
-					; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
-					; 		(bind ?podercomer ?podercomer 0)
-					; 	)
-					; 	(bind ?j (+ ?j 3))
-					; 	(bind ?a (+ ?a 1))
-					; )
-					; (assert (pcomer $?podercomer))
-					(if(= ?ComidasQuedan 0)then 
-						; en caso de ya no tener comidas, hay que pasar a un estado normal
+
+				(if (= ?ComidasQuedan 0) then ; ya no hay fichas comidas -> tratar solamente una ficha TODO
+					(retract ?duf ?mc ?d1 ?m2 ?m1m2 ?s2)
+
+					(assert (movimientosdado2 (create$)))
+					(assert (movimientosdado1dado2 (create$)))
+					(assert (situacionJ2 0))
+					(assert (contadordado2 0))
+					
+					(retract ?m1)
+					(assert (movimientosdado1 $?listas))
+					(if(eq ?turno 2) then
+						(retract ?s1)
+						(assert (situacionJ1 1))
+						(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+					else
+						(retract ?s2)
+						(assert (situacionJ2 1))
+						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 					)
+					(assert (movimientoComidas 0))
+					(assert (desplazarUnaFicha 1))
+					(assert (D1 ?dado1))
+
+					(bind $?podercomer (create$))
+					(printout t "Ahora puedes mover cualquier ficha del tablero" crlf)
+					(printout t "elige algun movimiento usando el dado 1" crlf)
+					(bind $?listas (posibleDesplazamientoUnaficha ?color ?dado1 $?tablero))
+					(bind $?dado1listabool 0)
+					(bind $?dado1lista $?listas)
+					(bind ?i 1)
+					(bind ?cont1 0)
+					(while (= $?dado1listabool 0)
+						(bind ?elemento (nth$ ?i $?listas))
+						(if (= -1 ?elemento) then
+							(bind $?dado1listabool 1)
+						else
+							;(bind ?dado1lista ?dado1lista (nth$ ?i ?listas))
+							(bind ?i (+ ?i 1))
+							(bind ?cont1 (+ ?cont1 1))
+						)
+					)
+					(bind ?j 1)
+					(bind ?a 1)
+					(while (< ?j ?cont1)
+						(bind ?tupla (create$))
+						(bind ?elemento (nth$ ?j $?dado1lista))
+						(bind ?siguienteElemento (nth$ (+ ?j 1) $?dado1lista))
+						(bind ?secome (nth (+ ?j 2) $?dado1lista))
+						(if (eq ?secome 1) then
+							(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
+							(bind $?podercomer $?podercomer 1)
+						else
+							(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+							(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
+							(bind $?podercomer $?podercomer 0)
+						)
+						(bind ?j (+ ?j 3))
+						(bind ?a (+ ?a 1))
+					)
+					(retract ?cd2 ?nam)
+					(assert (contadordado1 ?cont1))
+					(assert (pcomer $?podercomer))
 				else ; todavia quedan comidas
 					(if(eq ?turno 1) then
 						(bind ?comidasturnoJ1 (- ?comidasturnoJ1 1))
 					else
 						(bind ?comidasturnoJ2 (- ?comidasturnoJ2 1))
 					)
-					(printout t "Ahora elige un movimiento con el dado1" crlf)
-					(bind ?movimiento (read))
-					(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
-						(printout t "elige un movimiento valido del dado1!" crlf)
+					(if (or (> ?lmovdados1 0)(> ?lmovdados2 0)(> ?lmovdados1d2 0))then
+						(printout t "Ahora elige un movimiento con el dado1" crlf)
 						(bind ?movimiento (read))
-					)
-					(bind ?vaComer (nth$ ?movimiento $?pcomer))
-					(if (eq ?vaComer 1) then
-						(printout t "Ha elegido comer" crlf)
-						(if(eq ?turno 2) then
-							(retract ?s1)
-							(assert (situacionJ1 1))
-							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-						else
-							(retract ?s2)
-							(assert (situacionJ2 1))
-							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+						(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
+							(printout t "elige un movimiento valido del dado1!" crlf)
+							(bind ?movimiento (read))
 						)
-					)
-					;(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado2))
-					(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado2))
-					(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tablero))
+						(bind ?vaComer (nth$ ?movimiento $?pcomer))
+						(if (eq ?vaComer 1) then
+							(printout t "Ha elegido comer" crlf)
+							(if(eq ?turno 2) then
+								(retract ?s1)
+								(assert (situacionJ1 1))
+								(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+							else
+								(retract ?s2)
+								(assert (situacionJ2 1))
+								(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+							)
+						)
+						;(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado2))
+						(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado2))
+						(bind $?tableroNuevo (actualizarTableroComidas ?hasta ?color ?vaComer $?tableroNuevo))
 
-					(retract ?bg ?m1)
-					(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+						(retract ?bg ?m1)
+						(assert (BackGammon (ID ?id)(padre ?padre)(tablero $?tableroNuevo)(profundidad ?profundidad)))
 
-					(imprimir-mapeo $?tableroNuevo)	
-					(if (= ?turno 1)then 
-						(bind ?ComidasQuedan ?comidasturnoJ1)
+						(imprimir-mapeo $?tableroNuevo)	
+						(if (= ?turno 1)then 
+							(bind ?ComidasQuedan ?comidasturnoJ1)
+						else 
+							(bind ?ComidasQuedan ?comidasturnoJ2)
+						)		
+						(if (= ?ComidasQuedan 0) then 
+							; en caso de ya no tener comidas, hay que pasar a un estado normal
+							(retract ?s1)
+							(assert (situacionJ1 0))
+						)
+						(if (= ?turno 1) then
+							(retract ?t)
+							(assert (turno 2))
+						else
+							(retract ?t)
+							(assert (turno 1))
+						)
+						(assert (contadordado1 0))
+						(assert (contadordado2 0))
 					else 
-						(bind ?ComidasQuedan ?comidasturnoJ2)
-					)		
-					(if (= ?ComidasQuedan 0) then 
-						; en caso de ya no tener comidas, hay que pasar a un estado normal
-						(retract ?s1)
-						(assert (situacionJ1 0))
-					)		
+					 	(printout t "No hay movimientos posibles" crlf)
+						(printout t "Muak muak, pierde el turno colegi" crlf)
+					)
+		
 				)
 			)
 		)
 
-		(retract ?cm1 ?cm2)
+		(retract ?cm1 ?cm2) 
 		(assert (comidasJ1 ?comidasturnoJ1))		
 		(assert (comidasJ2 ?comidasturnoJ2))
-		(retract ?nam)
+		;(retract ?nam)
+		(if (eq ?turno 1)then 
+			(retract ?fu2)
+			;(assert (fichasUltimoCuaJ1 (+ ?fichasUltimo ?fichasUltimoJ1)))
+			(assert (fichasUltimoCuaJ2 (- ?fichasUltimoJ2 ?fichasUltimoContrario)))		
+			
+		else
+			(retract ?fu1)
+			;(assert (fichasUltimoCuaJ2 (+ ?fichasUltimo ?fichasUltimoJ2)))
+			(assert (fichasUltimoCuaJ1 (- ?fichasUltimoJ1 ?fichasUltimoContrario)))
+		)
 	else 
 		(printout t "No hay movimientos posibles" crlf)
 		(printout t "Muak muak, pierde el turno" crlf)
+		(if (= ?turno 1) then
+			(retract ?t)
+			(assert (turno 2))
+		else
+			(retract ?t)
+			(assert (turno 1))
+		)
 	)
 
-	(retract ?cd1 ?cd2 ?cd1d2 ?cm1 ?cm2 ?nam ?mc) 
+	(retract ?mc ?nam)
 	(assert (movimientoComidas 0))
+
+	
+
+)
+
+(defrule desplazarUnaFichaREGLA
+	?m<- (movimiento 0)
+	?d<- (desplazar 0)
+	?mc<- (movimientoComidas 0)
+	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 1)
+	?muf<- (movimientoUnaFicha 0)
+	?m1<- (movimientosdado1 $?movimientosdado1)
+	?m2<- (movimientosdado2 $?movimientosdado2)
+	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
+	?comJ1<- (comidasJ1 ?comiJ1)
+	?comJ2<- (comidasJ2 ?comiJ2)
+	?d1 <- (D1 ?dado1)
+	?d2 <- (D2 ?dado2)
+	?sumad1d2 <- (SD ?sumadados)
+	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
+	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	(test (eq ?turno ?nombre))
+	(test (or (> ?dado1 0)(> ?dado2 0)))
+	=>
+	;(printout t "entra en desplazar " crlf)
+	; no sabemos que dado es el que se va a usar
+	(if (> ?dado1 0)then 
+		(bind ?dado ?dado1)
+		(bind $?movimientosdado $?movimientosdado1)
+	else
+		(bind ?dado ?dado2)
+		(bind $?movimientosdado $?movimientosdado2)
+	)
+	; )
+	; (bind $?posiblesDespD1 (create$))
+	; (if (eq ?color 1) then
+	; 	(bind ?i 1)
+	; 	(while(> 24 ?i)
+	; 		; hay alguna ficha blanca en la posicion i
+	; 		(if (> (nth$ ?i $?tablero) 0) then		
+	; 			(bind ?posicionD1 (+ ?i ?dado))
+	; 			(if(< ?posicionD1 24) then 
+	; 				(if (= (nth$ ?posicionD1 $?tablero) -1) then
+	; 					(bind ?tupla (create$ ?i ?posicionD1))
+	; 					(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+	; 					(bind $?posiblesDespD1 $?posiblesDespD1 1)
+	; 				)
+	; 				(if(> (nth$ ?posicionD1 $?tablero) -1) then
+	; 					(bind ?tupla (create$ ?i ?posicionD1))
+	; 					(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
+	; 					(bind $?posiblesDespD1 $?posiblesDespD1 2)
+	; 				)
+	; 			)
+	; 		)
+	; 		(bind ?i (+ ?i 1))
+	; 	)
+	; else
+	; 	(bind ?i 24)
+	; 	(while(< 1 ?i)
+	; 		; hay alguna ficha negra en la posicion i
+	; 		(if (< (nth$ ?i $?tablero) 0) then 
+	; 			(bind ?posicionD1 (- ?i ?dado))
+	; 			(if(> ?posicionD1 1) then
+	; 				(if (= (nth$ ?posicionD1 $?tablero) 1) then
+	; 					(bind ?tupla (create$ ?i ?posicionD1))
+	; 					(bind $?movimientosdado $?movimientosdado ?tupla)
+	; 					(bind $?movimientosdado $?movimientosdado 1)
+	; 				)
+	; 				(if(< (nth$ ?posicionD1 $?tablero) 1) then
+	; 					(bind ?tupla (create$ ?i ?posicionD1))
+	; 					(bind $?movimientosdado $?movimientosdado ?tupla)
+	; 					(bind $?movimientosdado $?movimientosdado 2)
+	; 				)	
+	; 			)
+	; 		)
+	; 		(bind ?i (- ?i 1))
+	; 	)
+	; )
+
+	(if (> ?dado1 0)then 
+		(retract ?d1 ?m1)
+		(assert (D1 0))
+		(assert (movimientosdado1 $?movimientosdado))
+	else
+		(retract ?d2 ?m2)
+		(assert (D2 0))
+		(assert (movimientosdado2 $?movimientosdado))		
+	)
+
+	
+	(retract ?duf ?muf)
+	(assert (desplazarUnaFicha 0))
+	(assert (movimientoUnaFicha 1))
+)
+
+(defrule movimientoUnaFichaREGLA
+	?s1<- (situacionJ1 ?situa1)
+	?s2<- (situacionJ2 ?situa2)
+	?m<- (movimiento 0)
+	?d<- (desplazar 0)
+	?fu1<- (fichasUltimoCuaJ1 ?fichasUltimoJ1)
+	?fu2<- (fichasUltimoCuaJ2 ?fichasUltimoJ2)
+	?mc<- (movimientoComidas 0)
+	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 1)
+	?cm1<- (comidasJ1 ?cmj1)			
+	?cm2<- (comidasJ2 ?cmj2)   
+	?cd1<- (contadordado1 ?contd1)
+	?cd2<- (contadordado2 ?contd2)
+	?cd1d2<- (contadorsumadados ?contd1d2)
+	?m1<- (movimientosdado1 $?movimientosdado1)
+	?m2<- (movimientosdado2 $?movimientosdado2)
+	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
+	?nam<- (pcomer $?pcomer)
+	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
+	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	(test (= ?turno ?nombre))
+	(test (or (= ?situa1 0)(= ?situa2 0)))
+	=>
+
+	(bind ?comidasturnoJ1 0)
+	(bind ?comidasturnoJ2 0)
+	(bind ?movimiento (read))
+
+	(bind ?contd1 (div ?contd1 3))
+	(bind ?contd2 (div ?contd2 3))
+
+	(bind ?fichasUltimo 0)
+
+	(bind ?lmovdados1 (length$ $?movimientosdado1))
+	(bind ?lmovdados2 (length$ $?movimientosdado2))
+	
+	(bind ?fichasUltimo 0)
+	(bind ?fichasUltimoContrario 0)
+
+	(if (> ?lmovdados1 0)then
+		(printout t "tiene q mover el dado 1" crlf)
+		(bind ?vaComer (nth$ ?movimiento $?pcomer))
+		(if (eq ?vaComer 1) then
+			(printout t "Ha elegido comer" crlf)
+			; hay que actualizar el numero de comidas para el otro contricante 			
+			; miramos que jugador somos
+			(if(eq ?turno 1) then
+				(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+				(retract ?s2)
+				(assert (situacionJ2 1))
+			else
+				(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+				(retract ?s1)
+				(assert (situacionJ1 1))
+			)
+		)
+		(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado1))
+		(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado1))
+
+		(if (eq ?vaComer 1)then
+			(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+			(if (eq ?ulticontri 1) then
+				(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+			)
+		)
+		(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+		(if (eq ?ulti 1) then
+			(bind ?fichasUltimo (+ ?fichasUltimo 1))
+		)
+
+		(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
+		(imprimir-mapeo $?tableroNuevo)
+		(retract ?bg)
+		(assert (BackGammon (ID ?id)(padre ?padre)(tablero $?tableroNuevo)(profundidad ?profundidad)))
+
+	else
+		(if (> ?lmovdados2 0)then
+			(printout t "tiene q mover el dado 2" crlf)
+			(bind ?vaComer (nth$ ?movimiento $?pcomer))
+			(if (eq ?vaComer 1) then
+				(printout t "Ha elegido comer" crlf)
+				; hay que actualizar el numero de comidas para el otro contricante 			
+				; miramos que jugador somos
+				(if(eq ?turno 1) then
+					(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+					(retract ?s2)
+					(assert (situacionJ2 1))
+				else
+					(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+					(retract ?s1)
+					(assert (situacionJ1 1))
+				)
+			)
+			(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado2))
+			;(printout t "desde " ?desde crlf)
+			(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado2))
+			;(printout t "hasta " ?hasta crlf)
+			;(printout t "color " ?color crlf)
+
+			(if (eq ?vaComer 1)then
+				(bind ?ulticontri (MirarContricanteSiUltimoCuadrante ?hasta ?color))
+				(if (eq ?ulticontri 1) then
+					(bind ?fichasUltimoContrario (+ ?fichasUltimoContrario 1))
+				)
+			)
+			(bind ?ulti (MirarSiUltimoCuadrante ?hasta ?color))
+			(if (eq ?ulti 1) then
+				(bind ?fichasUltimo (+ ?fichasUltimo 1))
+			)
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
+			(imprimir-mapeo $?tableroNuevo)
+			(retract ?bg)
+			(assert (BackGammon (ID ?id)(padre ?padre)(tablero $?tableroNuevo)(profundidad ?profundidad)))
+			(if (eq ?turno 1)then 
+				(retract ?fu1 ?fu2)
+				(assert (fichasUltimoCuaJ1 (+ ?fichasUltimo ?fichasUltimoJ1)))
+				(assert (fichasUltimoCuaJ2 (- ?fichasUltimoJ2 ?fichasUltimoContrario)))	
+			else
+				(retract ?fu1 ?fu2)
+				(assert (fichasUltimoCuaJ2 (+ ?fichasUltimo ?fichasUltimoJ2)))
+				(assert (fichasUltimoCuaJ1 (- ?fichasUltimoJ1 ?fichasUltimoContrario)))
+			)
+
+
+		
+		else
+			(printout t "no hay movimientos posibles " crlf)
+		)	
+	)
+
+
+
 
 	(if (= ?turno 1) then
 		(retract ?t)
@@ -1412,6 +1927,8 @@
 		(retract ?t)
 		(assert (turno 1))
 	)
+	
+	(retract ?cd1 ?cd2 ?cd1d2 ?cm1 ?cm2 ?nam ?muf ?m1 ?m2) 
 
 	(assert (comidasJ1 ?comidasturnoJ1))		
 	(assert (comidasJ2 ?comidasturnoJ2))
@@ -1423,80 +1940,40 @@
 	(assert (contadordado1 0))
 	(assert (contadordado2 0))
 	(assert (contadorsumadados 0))
-	
 
+	(assert (movimientoUnaFicha 0))
 
 )
 
-; (defrule desplazarUnaFichaREGLA
-; 	?d<-(desplazarunaficha 1)
-; 	?m1<- (movimientosdado1 $?movimientosdado1)
-; 	?m2<- (movimientosdado2 $?movimientosdado2)
-; 	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
-; 	?comJ1<- (comidasJ1 ?comiJ1)
-; 	?comJ2<- (comidasJ2 ?comiJ2)
-; 	?d1 <- (D1 ?dado1)
-; 	?d2 <- (D2 ?dado2)
-; 	?sumad1d2 <- (SD ?sumadados)
-; 	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
-; 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
-; 	?t<- (turno ?turno)
-; 	(test (eq ?turno ?nombre))
-; 	=>
-; 	;(printout t "entra en desplazar " crlf)
-; 	(retract ?d ?m1 ?m2 ?m1m2)
-; 	(bind $?posiblesDespD1 (create$))
-; 	(if (eq ?color 1) then
-; 		(bind ?i 1)
-; 		(while(> 24 ?i)
-; 			; hay alguna ficha blanca en la posicion i
-; 			(if (> (nth$ ?i $?tablero) 0) then		
-; 				(bind ?posicionD1 (+ ?i ?dado))
-; 				(if(< ?posicionD1 24) then 
-; 					(if (= (nth$ ?posicionD1 $?tablero) -1) then
-; 						(bind ?tupla (create$ ?i ?posicionD1))
-; 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
-; 						(bind $?posiblesDespD1 $?posiblesDespD1 1)
-; 					)
-; 					(if(> (nth$ ?posicionD1 $?tablero) -1) then
-; 						(bind ?tupla (create$ ?i ?posicionD1))
-; 						(bind $?posiblesDespD1 $?posiblesDespD1 ?tupla)
-; 						(bind $?posiblesDespD1 $?posiblesDespD1 2)
-; 					)
-; 				)
-; 			)
-; 		)
-; 	else
-; 		(bind ?i 24)
-; 		(while(< 1 ?i)
-; 			; hay alguna ficha negra en la posicion i
-; 			(if (< (nth$ ?i $?tablero) 0) then 
-; 				(bind ?posicionD1 (- ?i ?dado))
-; 				(if(> ?posicionD1 1) then
-; 					(if (= (nth$ ?posicionD1 $?tablero) 1) then
-; 						(bind ?tupla (create$ ?i ?posicionD1))
-; 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
-; 						(bind $?movimientosdado1 $?movimientosdado1 1)
-; 					)
-; 					(if(< (nth$ ?posicionD1 $?tablero) 1) then
-; 						;(printout t "La ficha de la posicion " ?i " puede moverse a la posicion " ?posicionD1 " utilizando el dado1"crlf)
-; 						(bind ?tupla (create$ ?i ?posicionD1))
-; 						(bind $?movimientosdado1 $?movimientosdado1 ?tupla)
-; 						(bind $?movimientosdado1 $?movimientosdado1 2)
-; 					)	
-; 				)
-; 			)
-; 		)
-; 	)
-; 	(assert (movimientosdado1 $?movimientosdado1))
-; 	(retract ?d)
-; 	(assert (desplazar 0))
-; 	;(retract ?d1 ?d2 ?sumad1d2)
-; 	(assert (movimiento 1))
+(defrule desplazarGanador
+	?m<- (movimiento 0)
+	?d<- (desplazar 0)
+	?mc<- (movimientoComidas 0)
+	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
+	?m1<- (movimientosdado1 $?movimientosdado1)
+	?m2<- (movimientosdado2 $?movimientosdado2)
+	?m1m2<- (movimientosdado1dado2 $?movimientosdado1dado2)
+	?comJ1<- (comidasJ1 ?comiJ1)
+	?comJ2<- (comidasJ2 ?comiJ2)
+	?d1 <- (D1 ?dado1)
+	?d2 <- (D2 ?dado2)
+	?sumad1d2 <- (SD ?sumadados)
+	?j<- (jugador (tipo ?tipo)(color ?color)(nombre ?nombre)(fichasJugando ?fichasJugando)(fichasCasa 0)(fichasUltimo ?fichasUltimo))
+	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
+	?t<- (turno ?turno)
+	?fu1<- (fichasUltimoCuaJ1 ?fichasUltimoJ1)
+	?fu2<- (fichasUltimoCuaJ2 ?fichasUltimoJ2)
+	?ftotal1 <-(fichasJugandoJugador1 ?fichasJugandoJ1)
+	?ftotal2 <-(fichasJugandoJugador2 ?fichasJugandoJ2)
+	(test (eq ?turno ?nombre))
+	(test (or (> ?dado1 0)(> ?dado2 0)))
+	(test (or (= ?fichasJugandoJ1 ?fichasUltimoJ1)(= ?fichasJugandoJ2 ?fichasUltimoJ2)))
+	=>
+	(printout t "Ojo!! Puedes ir metiendo a casa! " crlf)
 
-; )
-
-
+)
 
 (defrule jugador1
     ?t<-(turno 1)
@@ -1513,6 +1990,8 @@
 	?d<- (desplazar 0)
 	?mc<- (movimientoComidas 0)
 	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?numfichas<- (fichasJugandoJugador1 ?numfichasj1)
 	=>
 	(assert (movimientosdado1 (create$)))	
@@ -1689,6 +2168,8 @@
 	?d<- (desplazar 0)
 	?mc<- (movimientoComidas 0)
 	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?numfichas<- (fichasJugandoJugador2 ?numfichasj2)
 	?nam<-(comidasJ1 ?namin)
 	(test (eq ?namin 0))
@@ -1863,6 +2344,8 @@
 	?cd1<-(contadordado1 0)
 	?cd2<-(contadordado2 0)
 	?cd1d2<-(contadorsumadados 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?j1<-(jugador (tipo ?tipoj1)(color ?colorj1)(nombre 1)(fichasJugando ?fichasJugandoj1)(fichasCasa ?fichasCasaj1)(fichasUltimo ?fichasUltimoj1))
 	?bg<- (BackGammon (ID ?id)(padre ?padre)(tablero $?tablero)(profundidad ?profundidad))
 	?m<- (movimiento 0)
@@ -2051,6 +2534,8 @@
 	?d<- (desplazar 0)
 	?mc<- (movimientoComidas 0)
 	?dc<- (desplazarComidas 0)
+	?duf<- (desplazarUnaFicha 0)
+	?muf<- (movimientoUnaFicha 0)
 	?numfichas<- (fichasJugandoJugador2 ?numfichasj2)
 	=>
 	(assert (movimientosdado1 (create$)))	
