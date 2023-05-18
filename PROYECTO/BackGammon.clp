@@ -605,12 +605,13 @@
 	(bind ?movimiento (read))
 
 	(bind ?contd1 (div ?contd1 3))
+	(printout t "contd1: " ?contd1 crlf)
 	(bind ?contd2 (div ?contd2 3))
+	(printout t "contd2: " ?contd2 crlf)
 	(bind ?contd1d2 (div ?contd1d2 3))
-	;(printout t ?contd1 " " ?contd2 " " ?contd1d2 crlf)
+	(printout t "contd1d2: " ?contd1d2 crlf)
 
 	(bind ?lmovdados1 (length$ $?movimientosdado1))
-	;(printout t "longitud movimientos dado1: " ?lmovdados1 crlf)
 	(bind ?lmovdados2 (length$ $?movimientosdado2))
 	(bind ?lmovdados1d2 (length$ $?movimientosdado1dado2))
 
@@ -706,9 +707,9 @@
 					)
 
 				)
-				(bind ?desde (nth$ (- (* (- ?movimiento ?contd2) 3) 2)  $?movimientosdado1dado2))
+				(bind ?desde (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 2)  $?movimientosdado1dado2))
 				(printout t "desde: " ?desde crlf)
-				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd2) 3) 1) $?movimientosdado1dado2))
+				(bind ?hasta (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 1) $?movimientosdado1dado2))
 				(printout t "hasta: " ?hasta crlf)
 
 				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
@@ -1241,8 +1242,8 @@
 						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
 					)
 				)
-				(bind ?desde (nth$ (- (* (- ?movimiento ?contd2) 3) 2)  $?movimientosdado1))
-				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd2) 3) 1)  $?movimientosdado1))
+				(bind ?desde (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 2)  $?movimientosdado1))
+				(bind ?hasta (nth$ (- (* (- ?movimiento (+ ?contd2 ?contd1)) 3) 1)  $?movimientosdado1))
 
 				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
 
