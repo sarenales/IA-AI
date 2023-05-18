@@ -706,7 +706,7 @@
 					)
 
 				)
-				(bind ?desde (nth$ (- (* (- ?movimiento ?contd2) 3) 1)  $?movimientosdado1dado2))
+				(bind ?desde (nth$ (- (* (- ?movimiento ?contd2) 3) 2)  $?movimientosdado1dado2))
 				(printout t "desde: " ?desde crlf)
 				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd2) 3) 1) $?movimientosdado1dado2))
 				(printout t "hasta: " ?hasta crlf)
@@ -1116,30 +1116,176 @@
 		; tenemos que saber que jugador somos
 		(if(eq ?turno 1) then
 			(bind ?comidasJ1 (- ?comidasJ1 1))
-			; si elige el dado 1 primero
-			(if(<= ?movimiento  ?contd1) then 
-				(retract ?m1m2)
-				(printout t "elige el dado 1" crlf) 
+		else
+			(bind ?comidasJ2 (- ?comidasJ2 1))
+		)
+
+		; si elige el dado 1 primero
+		(if(<= ?movimiento  ?contd1) then 
+			(retract ?m1m2)
+			(printout t "elige el dado 1" crlf) 
+			; hay que mirar si va a comer
+			(bind ?vaComer (nth$ ?movimiento $?pcomer))
+			(if (eq ?vaComer 1) then
+				(printout t "Ha elegido comer" crlf)
+				(if(eq ?turno 2) then
+					(retract ?s1)
+					(assert (situacionJ1 1))
+					(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+				else
+					(retract ?s2)
+					(assert (situacionJ2 1))
+					(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+				)
+			)
+			(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado1))
+			(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado1))
+			(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
+			(imprimir-mapeo $?tableroNuevo)
+			(retract ?m1)
+
+			; el dado2
+			(if (= ?cmj1 0) then ; ya no hay comidas->tratar solo un movimiento TODO
+				; hay que tratar el otro movimiento como normal. 
+				; puede mover cualquier movimiento del tablero
+				(retract ?s1)
+				(assert (situacionJ1 0))
+				(printout t "Ahora elige un movimiento con el dado2" crlf)
+				(assert (desplazarUnaFicha 0))
+				;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
+				; (bind ?j 1)
+				; (bind ?a 1)
+				; (while (< ?j ?cont1)
+				; 	(bind ?tupla (create$))
+				; 	(bind ?elemento (nth$ ?j ?lista))
+				; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
+				; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
+				; 	(if (eq ?secome 1) then
+				; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
+				; 		(bind ?podercomer ?podercomer 1)
+				; 	else
+				; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
+				; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
+				; 		(bind ?podercomer ?podercomer 0)
+				; 	)
+				; 	(bind ?j (+ ?j 3))
+				; 	(bind ?a (+ ?a 1))
+				; )
+				; (assert (pcomer $?podercomer))
+				(if(= ?cmj1 0)then 
+					; en caso de ya no tener comidas, hay que pasar a un estado normal
+					(retract ?s1)
+					(assert (situacionJ1 0))
+				)
+			else ; sigue habiendo comidas
+				(if(eq ?turno 1) then
+					(bind ?comidasJ1 (- ?comidasJ1 1))
+				else
+					(bind ?comidasJ2 (- ?comidasJ2 1))
+				)
+				(printout t "Ahora elige un movimiento con el dado2" crlf)
+				(bind ?movimiento (read))
+				(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
+					(printout t "elige un movimiento valido del dado2!" crlf)
+					(bind ?movimiento (read))
+				)
+				(bind ?vaComer (nth$ ?movimiento $?pcomer))
+				(if (eq ?vaComer 1) then
+					(printout t "Ha elegido comer" crlf)
+					(if(eq ?turno 2) then
+						(retract ?s1)
+						(assert (situacionJ1 1))
+						(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+					else
+						(retract ?s2)
+						(assert (situacionJ2 1))
+						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+					)
+				)
+				(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2)$?movimientosdado2))
+				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
+				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
+
+				(retract ?bg ?m2)
+				(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+
+				(imprimir-mapeo $?tableroNuevo)
+				(if (= ?cmj1 0) then 
+					; en caso de ya no tener comidas, hay que pasar a un estado normal
+					(retract ?s1)
+					(assert (situacionJ1 0))
+				)
+				
+			)
+			
+		else
+			; elige dad1+dad2
+			(if(> ?movimiento (+ ?contd1 ?contd2)) then
+				(printout t "elige el dado1+2" crlf)
+				(bind ?movimiento (read))
+				; ya no puede elegir ningun dado mas
+				(retract ?m1 ?m2)
 				; hay que mirar si va a comer
 				(bind ?vaComer (nth$ ?movimiento $?pcomer))
 				(if (eq ?vaComer 1) then
 					(printout t "Ha elegido comer" crlf)
-					(retract ?cm2)
-					(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-				
+					; hay que actualizar el numero de comidas para el otro contricante 			
+					; miramos que jugador somos
+					(if(eq ?turno 2) then
+						(retract ?s1)
+						(assert (situacionJ1 1))
+						(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+					else
+						(retract ?s2)
+						(assert (situacionJ2 1))
+						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+					)
 				)
-				(bind ?desde (nth$ ?movimiento $?movimientosdado1))
-				(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
-				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-				(imprimir-mapeo $?tableroNuevo)
-				(retract ?m1)
+				(bind ?desde (nth$ (- (* (- ?movimiento ?contd2) 3) 2)  $?movimientosdado1))
+				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd2) 3) 1)  $?movimientosdado1))
 
-				; el dado2
-				(if (= ?cmj1 0) then ; tratar solo un movimiento
-					; hay que tratar el otro movimiento como normal. 
-					; puede mover cualquier movimiento del tablero
+				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
+
+				(retract ?bg)
+				?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
+
+				(imprimir-mapeo $?tableroNuevo)
+				(retract ?m1m2)
+				(if(= ?cmj1 0)then 
+					; en caso de ya no tener comidas, hay que pasar a un estado normal
 					(retract ?s1)
 					(assert (situacionJ1 0))
+				)
+			else ;elige dado2 primero
+				(retract ?m1m2)
+				(printout t "elige el dado 2" crlf)
+				; hay que mirar si va a comer
+				(bind ?vaComer (nth$ ?movimiento $?pcomer))
+				(if (eq ?vaComer 1) then
+					(printout t "Ha elegido comer" crlf)
+					; hay que actualizar el numero de comidas para el otro contricante 			
+					; miramos que jugador somos
+					(if(eq ?turno 2) then
+						(retract ?s1)
+						(assert (situacionJ1 1))
+						(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+					else
+						(retract ?s2)
+						(assert (situacionJ2 1))
+						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+					)
+
+				)
+				(bind ?desde (nth$ (- (* (- ?movimiento ?contd1) 3) 2) $?movimientosdado2))
+				(bind ?hasta (nth$ (- (* (- ?movimiento ?contd1) 3) 1) $?movimientosdado2))
+
+				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
+
+				(imprimir-mapeo $?tableroNuevo)
+
+				(retract ?m2)
+
+				(if (> ?cmj1 1) then ; ya no hay fichas comidas -> tratar solamente una ficha TODO
 					(printout t "Ahora elige un movimiento con el dado2" crlf)
 					(assert (desplazarUnaFicha 0))
 					;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
@@ -1164,309 +1310,49 @@
 					; (assert (pcomer $?podercomer))
 					(if(= ?cmj1 0)then 
 						; en caso de ya no tener comidas, hay que pasar a un estado normal
-						(retract ?s1)
-						(assert (situacionJ1 0))
 					)
-				else ; pasar a caso normal
-					(bind ?comidasJ1 (- ?comidasJ1 1))
-					(printout t "Ahora elige un movimiento con el dado2" crlf)
+				else ; todavia quedan comidas
+					(if(eq ?turno 1) then
+						(bind ?comidasJ1 (- ?comidasJ1 1))
+					else
+						(bind ?comidasJ2 (- ?comidasJ2 1))
+					)
+					(printout t "Ahora elige un movimiento con el dado1" crlf)
 					(bind ?movimiento (read))
 					(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
-						(printout t "elige un movimiento valido del dado2!" crlf)
+						(printout t "elige un movimiento valido del dado1!" crlf)
 						(bind ?movimiento (read))
 					)
 					(bind ?vaComer (nth$ ?movimiento $?pcomer))
 					(if (eq ?vaComer 1) then
 						(printout t "Ha elegido comer" crlf)
-						(retract ?cm2)
-						(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+						(if(eq ?turno 2) then
+							(retract ?s1)
+							(assert (situacionJ1 1))
+							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
+						else
+							(retract ?s2)
+							(assert (situacionJ2 1))
+							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
+						)
 					)
-					(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
-					(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
+					(bind ?desde (nth$ (- (* ?movimiento 3) 2) $?movimientosdado2))
+					(bind ?hasta (nth$ (- (* ?movimiento 3) 1) $?movimientosdado2))
 					(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
 
-					(retract ?bg ?m2)
+					(retract ?bg ?m1)
 					(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
 
-					(imprimir-mapeo $?tableroNuevo)
+					(imprimir-mapeo $?tableroNuevo)			
 					(if (= ?cmj1 0) then 
+						; en caso de ya no tener comidas, hay que pasar a un estado normal
 						(retract ?s1)
 						(assert (situacionJ1 0))
-					)
-					
-				)
-				
-			else
-				; elige dad1+dad2
-				(if(> ?movimiento (+ ?contd1 ?contd2)) then
-					(printout t "elige el dado1+2" crlf)
-					(bind ?movimiento (read))
-					; ya no puede elegir ningun dado mas
-					(retract ?m1 ?m2)
-					; hay que mirar si va a comer
-					(printout t "aaaa" crlf)
-					(bind ?vaComer (nth$ ?movimiento $?pcomer))
-					(if (eq ?vaComer 1) then
-						(printout t "Ha elegido comer" crlf)
-						; hay que actualizar el numero de comidas para el otro contricante 			
-						; miramos que jugador somos
-						(if(eq ?turno 1) then
-							(retract ?cm2)
-							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-						else
-							(retract ?cm1)
-							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-						)
-
-					)
-					(printout t "aaaa" crlf)
-					(bind ?desde (nth$ (- ?movimiento ?contd2) $?movimientosdado1))
-					(bind ?hasta (nth$ (+ (- ?movimiento ?contd2) 1) $?movimientosdado1))
-
-					(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-
-					(retract ?bg)
-					?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
-					(imprimir-mapeo $?tableroNuevo)
-					(retract ?m1m2)
-					(if(= ?cmj1 0)then 
-						; en caso de ya no tener comidas, hay que pasar a un estado normal
-						(assert (situacionJ1 0))
-					)
-				else ;elige dado2 primero
-					(retract ?m1m2)
-					(printout t "elige el dado 2" crlf)
-					; hay que mirar si va a comer
-					(bind ?vaComer (nth$ ?movimiento $?pcomer))
-					(if (eq ?vaComer 1) then
-						(printout t "Ha elegido comer" crlf)
-						; hay que actualizar el numero de comidas para el otro contricante 			
-						; miramos que jugador somos
-						(if(eq ?turno 1) then
-							(retract ?cm2)
-							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-						else
-							(retract ?cm1)
-							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-						)
-
-					)
-					(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
-					(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
-
-					(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-
-					(imprimir-mapeo $?tableroNuevo)
-
-					(retract ?m2)
-
-					(if (> ?cmj1 1) then ; tratar solamente una ficha
-						(printout t "Ahora elige un movimiento con el dado2" crlf)
-						(assert (desplazarUnaFicha 0))
-						;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
-						; (bind ?j 1)
-						; (bind ?a 1)
-						; (while (< ?j ?cont1)
-						; 	(bind ?tupla (create$))
-						; 	(bind ?elemento (nth$ ?j ?lista))
-						; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-						; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
-						; 	(if (eq ?secome 1) then
-						; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
-						; 		(bind ?podercomer ?podercomer 1)
-						; 	else
-						; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
-						; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
-						; 		(bind ?podercomer ?podercomer 0)
-						; 	)
-						; 	(bind ?j (+ ?j 3))
-						; 	(bind ?a (+ ?a 1))
-						; )
-						; (assert (pcomer $?podercomer))
-						(if(= ?cmj1 0)then 
-							; en caso de ya no tener comidas, hay que pasar a un estado normal
-						)
-					else ; pasar a caso normal
-						(bind ?comidasJ1 (- ?comidasJ1 1))
-						(printout t "Ahora elige un movimiento con el dado2" crlf)
-						(bind ?movimiento (read))
-						(while (or (> ?movimiento (+ ?contd1 ?contd2)) (< ?movimiento ?contd1))
-							(printout t "elige un movimiento valido del dado2!" crlf)
-							(bind ?movimiento (read))
-						)
-						(bind ?vaComer (nth$ ?movimiento $?pcomer))
-						(if (eq ?vaComer 1) then
-							(printout t "Ha elegido comer" crlf)
-							(if(eq ?turno 1) then
-								(retract ?cm2)
-								(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-							else
-								(retract ?cm1)
-								(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-							)
-						)
-						(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
-						(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
-						(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tableroNuevo))
-
-						(retract ?bg ?m2)
-						(assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
-						(imprimir-mapeo $?tableroNuevo)					
-					)
-				)
-			)
-		
-
-		else
-			(if(<= ?movimiento  ?contd1) then 
-				(retract ?m1m2)
-				(printout t "elige el dado 1" crlf) 
-
-				; hay que mirar si va a comer
-				(bind ?vaComer (nth$ ?movimiento $?pcomer))
-				(if (eq ?vaComer 1) then
-					(printout t "Ha elegido comer" crlf)
-					; hay que actualizar el numero de comidas para el otro contricante 			
-					; miramos que jugador somos
-					(retract ?cm1)
-					(assert (comidasJ1 (+ ?cmj1 1)))
-				)
-				(bind ?desde (nth$ ?movimiento $?movimientosdado1))
-				(bind ?hasta (nth$ (+ ?movimiento 1) $?movimientosdado1))
-				(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-				(imprimir-mapeo $?tableroNuevo)
-				(retract ?m1)
-				(if (= ?cmj1 0) then ; tratar solo un movimiento
-							; hay que tratar el otro movimiento como normal. 
-							; puede mover cualquier movimiento del tablero
-							(retract ?s1)
-							(assert (situacionJ1 0))
-							(printout t "Ahora elige un movimiento con el dado2" crlf)
-							(assert (desplazarUnaFicha 0))
-							;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
-							; (bind ?j 1)
-							; (bind ?a 1)
-							; (while (< ?j ?cont1)
-							; 	(bind ?tupla (create$))
-							; 	(bind ?elemento (nth$ ?j ?lista))
-							; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-							; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
-							; 	(if (eq ?secome 1) then
-							; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
-							; 		(bind ?podercomer ?podercomer 1)
-							; 	else
-							; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
-							; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
-							; 		(bind ?podercomer ?podercomer 0)
-							; 	)
-							; 	(bind ?j (+ ?j 3))
-							; 	(bind ?a (+ ?a 1))
-							; )
-							; (assert (pcomer $?podercomer))
-							(if(= ?cmj1 0)then 
-								; en caso de ya no tener comidas, hay que pasar a un estado normal
-								(retract ?s1)
-								(assert (situacionJ1 0))
-							)
-				else ; pasar a caso normal
-					(printout t "elige un movimiento valido del dado2!" crlf)
-					(bind ?movimiento (read))
-				)
-						
-			else
-				(if(> ?movimiento (+ ?contd1 ?contd2)) then
-					(printout t "elige el dado1+2" crlf)
-					; ya no puede elegir ningun dado mas
-					(retract ?m1 ?m2)
-					(printout t "aaaa" crlf)
-					; hay que mirar si va a comer
-					(bind ?vaComer (nth$ ?movimiento $?pcomer))
-					(if (eq ?vaComer 1) then
-						(printout t "Ha elegido comer" crlf)
-						; hay que actualizar el numero de comidas para el otro contricante 			
-						; miramos que jugador somos
-						(if(eq ?turno 1) then
-							(retract ?cm2)
-							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-						else
-							(retract ?cm1)
-							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-						)
-
-					)
-					(bind ?desde (nth$ (- ?movimiento ?contd2) $?movimientosdado1))
-					(bind ?hasta (nth$ (+ (- ?movimiento ?contd2) 1) $?movimientosdado1))
-
-					(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-
-					(retract ?bg)
-					?bg<- (assert (BackGammon (ID ?id)(padre ?padre)(tablero ?tableroNuevo)(profundidad ?profundidad)))
-
-					(imprimir-mapeo $?tableroNuevo)
-					(retract ?m1m2)
-					(if(= ?cmj1 0)then 
-						; en caso de ya no tener comidas, hay que pasar a un estado normal
-						(assert (situacionJ1 0))
-					)
-				else
-					(retract ?m1m2)
-					(printout t "elige el dado 2" crlf)
-					; hay que mirar si va a comer
-					(bind ?vaComer (nth$ ?movimiento $?pcomer))
-					(if (eq ?vaComer 1) then
-						(printout t "Ha elegido comer" crlf)
-						; hay que actualizar el numero de comidas para el otro contricante 			
-						; miramos que jugador somos
-						(if(eq ?turno 1) then
-							(retract ?cm2)
-							(bind ?comidasturnoJ2 (+ ?comidasturnoJ2 1))
-						else
-							(retract ?cm1)
-							(bind ?comidasturnoJ1 (+ ?comidasturnoJ1 1))
-						)
-
-					)
-					(bind ?desde (nth$ (- ?movimiento ?contd1) $?movimientosdado2))
-					(bind ?hasta (nth$ (+ (- ?movimiento ?contd1) 1) $?movimientosdado2))
-
-					(bind $?tableroNuevo (actualizarTablero ?desde ?hasta ?color ?vaComer $?tablero))
-
-					(imprimir-mapeo $?tableroNuevo)
-
-					(retract ?m2)
-					(if (> ?cmj1 1) then ; tratar solamente una ficha
-						(printout t "Ahora elige un movimiento con el dado2" crlf)
-						(assert (desplazarUnaFicha 0))
-						;(bind ?lista posibleDesplazamientoUnaficha (?color ?dado2 $?tablero))
-						; (bind ?j 1)
-						; (bind ?a 1)
-						; (while (< ?j ?cont1)
-						; 	(bind ?tupla (create$))
-						; 	(bind ?elemento (nth$ ?j ?lista))
-						; 	(bind ?siguienteElemento (nth$ (+ ?j 1) ?dado1lista))
-						; 	(bind ?secome (nth (+ ?j 2) ?dado1lista))
-						; 	(if (eq ?secome 1) then
-						; 		(printout t " Opcion " ?a ") ["  ?elemento "  COME -> "  ?siguienteElemento " ]" crlf)
-						; 		(bind ?podercomer ?podercomer 1)
-						; 	else
-						; 		(bind ?tupla ?tupla ?elemento ?siguienteElemento)
-						; 		(printout t " Opcion " ?a ") [" (implode$ ?tupla) "]" crlf)
-						; 		(bind ?podercomer ?podercomer 0)
-						; 	)
-						; 	(bind ?j (+ ?j 3))
-						; 	(bind ?a (+ ?a 1))
-						; )
-						; (assert (pcomer $?podercomer))
-						(if(= ?cmj1 0)then 
-							; en caso de ya no tener comidas, hay que pasar a un estado normal
-						)
-					else ; pasar a caso normal
-					)
+					)		
 				)
 			)
 		)
+
 		(retract ?cm1 ?cm2)
 		(assert (comidasJ1 ?comidasturnoJ1))		
 		(assert (comidasJ2 ?comidasturnoJ2))
@@ -1476,9 +1362,11 @@
 		(printout t "Muak muak, pierde el turno" crlf)
 	)
 
-	(retract ?cd1 ?cd2 ?cd1d2 ?m ?d)
+	(retract ?cd1 ?cd2 ?cd1d2 ?cm1 ?cm2 ?nam ?m) 
+
 	(assert (desplazarComidas 0))
 	(assert (movimientoComidas 0))
+
 	(if (= ?turno 1) then
 		(retract ?t)
 		(assert (turno 2))
@@ -1486,6 +1374,10 @@
 		(retract ?t)
 		(assert (turno 1))
 	)
+
+	(assert (comidasJ1 ?comidasturnoJ1))		
+	(assert (comidasJ2 ?comidasturnoJ2))
+
 	(assert (D1 0))
 	(assert (D2 0))
 	(assert (SD 0))
